@@ -10,7 +10,7 @@ export async function scrapeWebsite(url: string) {
 
     const client = new Firecrawl({ apiKey });
     const result = await client.scrape(url, {
-        formats: ["markdown"],
+        formats: ["markdown"]
     });
 
     const markdown = result.markdown?.trim();

@@ -54,37 +54,36 @@ model verification {
 }
 
 model user {
-  id            String    @id
+  id            String      @id
   name          String
-  email         String    @unique
+  email         String      @unique
   emailVerified Boolean
   image         String?
-  createdAt     DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime  @default(now()) @db.Timestamptz(6)
+  createdAt     DateTime    @default(now()) @db.Timestamptz(6)
+  updatedAt     DateTime    @default(now()) @db.Timestamptz(6)
   account       account[]
   session       session[]
   workspaces    Workspace[]
 }
 
 model Workspace {
-  id           String   @id @default(uuid())
-  userId       String
-  name         String?
-  title        String
-  description  String?
-  icon         String?
-  defaultModel String   @default("")
-  createdAt    DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime @updatedAt @db.Timestamptz(6)
-  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  workspaces   Workspace[]
+  id                String             @id @default(uuid())
+  userId            String
+  name              String?
+  title             String
+  description       String?
+  icon              String?
+  defaultModel      String             @default("")
+  createdAt         DateTime           @default(now()) @db.Timestamptz(6)
+  updatedAt         DateTime           @updatedAt @db.Timestamptz(6)
+  user              user               @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sources           Source[]
+  conversations     Conversation[]
+  learningArtifacts LearningArtifact[]
 
   @@index([userId])
 }
 
-
-
-cn
 enum SourceType {
   PDF
   WEBSITE
@@ -101,17 +100,17 @@ enum SourceStatus {
 }
 
 model Source {
-  id          String       @id @default(cuid())
+  id          String        @id @default(cuid())
   workspaceId String
   type        SourceType
   title       String
   content     String?
   url         String?
-  status      SourceStatus @default(PENDING)
+  status      SourceStatus  @default(PENDING)
   metadata    Json?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  // workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   chunks      SourceChunk[]
 
   @@index([workspaceId])
@@ -136,16 +135,16 @@ model SourceChunk {
 }
 
 model Conversation {
-  id                   String    @id @default(cuid())
-  workspaceId          String
-  title                String?
-  summary              String?
-  summaryMessageCount  Int       @default(0)
-  summarizedAt         DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
-  workspace            Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  messages             Message[]
+  id                  String    @id @default(cuid())
+  workspaceId         String
+  title               String?
+  summary             String?
+  summaryMessageCount Int       @default(0)
+  summarizedAt        DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  messages            Message[]
 
   @@index([workspaceId])
   @@index([workspaceId, updatedAt])

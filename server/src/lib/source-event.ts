@@ -14,7 +14,7 @@ export async function enqueueSourceProcessing(input: {
     sourceId: string;
     workspaceId: string;
 }) {
-    await inngest.send({
+    await  inngest.send({
         name: "source/created",
         data: input,
     });

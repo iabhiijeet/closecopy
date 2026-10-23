@@ -1,7 +1,7 @@
 import { findChunksBySourceId } from "../repository/source-chunk.repository.js";
 import { findSourceById } from "../repository/source.repository.js";
-import { processArtifactById } from "../services/artifact.services.js";
-import { summarizeConversationById } from "../services/conversation-memory.services.js";
+import { processArtifactById } from "../services/artifact.service.js";
+import { summarizeConversationById } from "../services/conversation-memory.service.js";
 import { chunkSourceContent, embedAndIndexSource, extractSourceContent, markSourceFailed, markSourceProcessing } from "../services/source-processing.services.js";
 import { inngest } from "./client.js"
 

@@ -5,19 +5,45 @@ import {
 } from "@pinecone-database/pinecone";
 import { EMBEDDING_DIMENSIONS } from "./ai-config.js";
 
-const indexName = process.env.PINECONE_INDEX ?? "closecopy";
-
 let pineconeClient: Pinecone | null = null;
-let indexReady = false;
+let pineconeClientKey: string | null = null;
+let readyIndexName: string | null = null;
 
+/**
+ * Returns the configured Pinecone index name.
+ *
+ * Read at call time so tests and process managers can set it without relying
+ * on module-load order.
+ */
+export function getPineconeIndexName(): string {
+    return process.env.PINECONE_INDEX?.trim() || "closecopy";
+}
 
-function getPineconeClient() {
-    if (!process.env.PINECONE_API_KEY) {
+/**
+ * Returns the Pinecone API key.
+ *
+ * `PIPECONE_API_KEY` is accepted as a legacy alias because older deployments
+ * used that misspelling. New deployments should use `PINECONE_API_KEY`.
+ */
+function getPineconeApiKey(): string {
+    const apiKey =
+        process.env.PINECONE_API_KEY?.trim() ||
+        process.env.PIPECONE_API_KEY?.trim();
+
+    if (!apiKey) {
         throw new Error("PINECONE_API_KEY is not configured");
     }
 
-    if (!pineconeClient) {
-        pineconeClient = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
+    return apiKey;
+}
+
+/** Returns the singleton Pinecone client. */
+export function getPineconeClient(): Pinecone {
+    const apiKey = getPineconeApiKey();
+
+    if (!pineconeClient || pineconeClientKey !== apiKey) {
+        pineconeClient = new Pinecone({ apiKey });
+        pineconeClientKey = apiKey;
     }
 
     return pineconeClient;
@@ -47,10 +73,11 @@ async function waitForIndexReady(name: string) {
  * Ensures the Pinecone index exists and is ready (creates it on first run if missing).
  *
  * @returns Resolves when the index is available
- *
  */
-export async function ensurePineconeIndex() {
-    if (indexReady) {
+export async function ensurePineconeIndex(): Promise<void> {
+    const indexName = getPineconeIndexName();
+
+    if (readyIndexName === indexName) {
         return;
     }
 
@@ -65,26 +92,25 @@ export async function ensurePineconeIndex() {
             metric: "cosine",
             spec: {
                 serverless: {
-                    cloud: "aws",
-                    region: "us-east-1",
+                    cloud: process.env.PINECONE_CLOUD?.trim() || "aws",
+                    region: process.env.PINECONE_REGION?.trim() || "us-east-1",
                 },
             },
         });
         await waitForIndexReady(indexName);
     }
 
-    indexReady = true;
+    readyIndexName = indexName;
 }
 
 /**
  * Returns the configured Pinecone index handle.
  *
  * @returns Pinecone `Index` instance
- *
  */
 export async function getPineconeIndex(): Promise<Index> {
     await ensurePineconeIndex();
-    return getPineconeClient().index({name:indexName});
+    return getPineconeClient().index({ name: getPineconeIndexName() });
 }
 
 /** Metadata stored on each Pinecone vector for RAG retrieval and citations. */
@@ -105,12 +131,11 @@ export type VectorMetadata = {
  * @param workspaceId - Pinecone namespace (one per workspace)
  * @param records - Vector records with embeddings and metadata
  * @returns Resolves immediately when `records` is empty
- *
  */
 export async function upsertSourceVectors(
     workspaceId: string,
     records: PineconeRecord<VectorMetadata>[],
-) {
+): Promise<void> {
     if (records.length === 0) {
         return;
     }
@@ -130,12 +155,11 @@ export async function upsertSourceVectors(
  * @param workspaceId - Pinecone namespace
  * @param sourceId - Source whose vectors should be removed
  * @returns Resolves when deletion completes
- *
  */
 export async function deleteSourceVectors(
     workspaceId: string,
     sourceId: string,
-) {
+): Promise<void> {
     const index = await getPineconeIndex();
     await index.namespace(workspaceId).deleteMany({
         filter: { sourceId: { $eq: sourceId } },
@@ -149,9 +173,10 @@ export async function deleteSourceVectors(
  *
  * @param workspaceId - Pinecone namespace to wipe
  * @returns Resolves when all vectors in the namespace are deleted
- *
  */
-export async function deleteWorkspaceVectors(workspaceId: string) {
+export async function deleteWorkspaceVectors(
+    workspaceId: string,
+): Promise<void> {
     const index = await getPineconeIndex();
     await index.namespace(workspaceId).deleteAll();
 }
@@ -163,13 +188,18 @@ export async function deleteWorkspaceVectors(workspaceId: string) {
  * @param vector - Query embedding (1536 dimensions)
  * @param topK - Maximum number of matches to return
  * @returns Pinecone match objects with scores and metadata
- *
  */
 export async function queryWorkspaceVectors(
     workspaceId: string,
     vector: number[],
     topK: number,
 ) {
+    if (vector.length !== EMBEDDING_DIMENSIONS) {
+        throw new Error(
+            `Query embedding must have ${EMBEDDING_DIMENSIONS} dimensions (received ${vector.length})`,
+        );
+    }
+
     const index = await getPineconeIndex();
     const result = await index.namespace(workspaceId).query({
         vector,
@@ -180,4 +210,4 @@ export async function queryWorkspaceVectors(
     return result.matches ?? [];
 }
 
-export { indexName as PINECONE_INDEX_NAME };
+export { getPineconeIndexName as PINECONE_INDEX_NAME };

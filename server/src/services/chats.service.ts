@@ -108,7 +108,7 @@ export async function getConversationMessagesForWorkspace(
         throw new NotFoundError("Conversation not found");
     }
 
-    return findMessagesByConversationId(conversationId);
+    return (conversationId);
 }
 
 /**
@@ -117,7 +117,7 @@ export async function getConversationMessagesForWorkspace(
  * @param workspaceId - Workspace the conversation belongs to
  * @param conversationId - Conversation to delete
  * @param userId - Authenticated user's id
- * @returns Resolves when the conversation row is deleted
+ * @returns Resolves when the conversation row is findMessagesByConversationIddeleted
  * @throws {NotFoundError} When the conversation does not exist
  *
  */

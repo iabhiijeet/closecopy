@@ -168,13 +168,7 @@ function FeatureVisual({ index }: { index: number }) {
           <FileText className="size-6 text-muted-foreground" />
         </motion.div>
         <div className="w-12 sm:w-20 h-px relative bg-primary/25">
-          {!reduce && (
-            <motion.span
-              className="absolute -top-0.5 size-1 rounded-full bg-primary"
-              animate={{ x: [0, 60], opacity: [0, 1, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-          )}
+          <span className="absolute -top-0.5 right-0 size-1 rounded-full bg-primary" />
         </div>
         {[ListChecks, Network, Sparkles].map((Icon, i) => (
           <motion.div
@@ -223,7 +217,7 @@ function FeatureVisual({ index }: { index: number }) {
               >
                 <FileText className="size-3 text-primary" />
                 <span className="truncate">{s.name}</span>
-                <span className="ml-auto text-citation font-mono text-[8px]">
+                <span className="ml-auto text-citation-foreground font-mono text-[8px]">
                   MATCH
                 </span>
               </motion.div>
@@ -276,10 +270,6 @@ export default function Features() {
             }
             description="Everything you need to go from “I should read this” to “look what I made.”"
           />
-          <p className="hidden lg:block text-[10px] text-muted-foreground mb-13 max-w-38 leading-relaxed">
-            Built for the space between learning something and doing something
-            with it.
-          </p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {featureData.map((f, i) => (
@@ -294,10 +284,10 @@ export default function Features() {
                   <span className="text-primary inline-flex mb-3">
                     <f.Icon className="size-4" />
                   </span>
-                  <h3 className="text-[15px] tracking-tight font-medium mb-2">
+                  <h3 className="text-base tracking-tight font-semibold mb-2">
                     {f.title}
                   </h3>
-                  <p className="text-xs leading-[1.8] text-muted-foreground max-w-90">
+                  <p className="text-[13px] leading-[1.7] text-muted-foreground max-w-90">
                     {f.text}
                   </p>
                 </div>

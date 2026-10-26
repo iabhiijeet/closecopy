@@ -33,12 +33,12 @@ export default function SlidesArtifact({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <Card className="h-65 sm:h-72 bg-linear-to-br from-primary/15 via-card to-cyan/5 border border-primary/20 p-6 sm:p-8 gap-0">
+                <Card className="h-65 sm:h-72 bg-linear-to-br from-primary/15 via-card to-gold/5 border border-primary/20 p-6 sm:p-8 gap-0">
                   <div className="flex justify-between items-center">
                     <p className="font-mono text-[9px] text-primary">
                       SLIDE 0{i + 1}
                     </p>
-                    <ArrowUpRight className="size-4 text-cyan" />
+                    <ArrowUpRight className="size-4 text-gold" />
                   </div>
                   <h4 className="mt-8 text-2xl sm:text-3xl tracking-tight font-medium max-w-sm">
                     {s.title}

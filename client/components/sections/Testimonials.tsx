@@ -1,21 +1,20 @@
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Quote, Star } from "lucide-react";
-import Marquee from "@/components/landing/Marquee";
 import SectionHeading from "@/components/landing/SectionHeading";
 import { testimonials } from "@/lib/mock-data";
 function Testimonial({ item }: { item: (typeof testimonials)[number] }) {
   return (
-    <Card className="glass w-76 sm:w-85 p-6 gap-0 rounded-xl">
+    <Card className="glass h-full p-6 gap-0 rounded-xl">
       <div className="flex justify-between mb-4">
-        <div className="flex gap-0.5 text-citation">
+        <div className="flex gap-0.5 text-gold">
           {Array.from({ length: 5 }, (_, i) => (
             <Star key={i} className="size-2.5 fill-current" />
           ))}
         </div>
         <Quote className="size-4 text-primary/50" />
       </div>
-      <p className="text-xs leading-[1.9] text-foreground/80 min-h-22">
+      <p className="text-[13px] leading-[1.75] text-foreground/80 min-h-22">
         “{item.quote}”
       </p>
       <div className="flex gap-3 items-center border-t border-border pt-4 mt-4">
@@ -34,7 +33,7 @@ function Testimonial({ item }: { item: (typeof testimonials)[number] }) {
 }
 export default function Testimonials() {
   return (
-    <section className="py-16 sm:py-22 overflow-hidden bg-card/15 border-y border-border">
+    <section className="section-space border-y border-border bg-card/30">
       <div className="container-page">
         <SectionHeading
           eyebrow="GOOD COMPANY FOR CURIOUS MINDS"
@@ -44,20 +43,13 @@ export default function Testimonials() {
               <span className="serif text-primary">you think.</span>
             </>
           }
-          description="For readers who make things. Researchers who ask more. And anyone with a little too many open tabs."
+          description="A space for curious readers and thoughtful makers."
         />
       </div>
-      <div className="space-y-4">
-        <Marquee duration={65}>
-          {testimonials.map((item) => (
-            <Testimonial key={item.name} item={item} />
-          ))}
-        </Marquee>
-        <Marquee reverse duration={75}>
-          {[...testimonials].reverse().map((item) => (
-            <Testimonial key={item.name} item={item} />
-          ))}
-        </Marquee>
+      <div className="container-page grid gap-4 md:grid-cols-3">
+        {testimonials.slice(0, 3).map((item) => (
+          <Testimonial key={item.name} item={item} />
+        ))}
       </div>
       <p className="text-[9px] text-center text-muted-foreground mt-5">
         Sample testimonials for this product demo.

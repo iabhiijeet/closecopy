@@ -32,17 +32,17 @@ export default function HeroWorkspace() {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref);
   const [tick, setTick] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [paused, setPaused] = useState(true);
   useEffect(() => {
     if (reduce || paused || !inView) return;
     const t = setInterval(() => setTick((v) => (v + 1) % 20), 1000);
     return () => clearInterval(t);
   }, [reduce, paused, inView]);
-  const stage = reduce ? 18 : tick;
+  const stage = reduce || paused ? 18 : tick;
   return (
     <Card
       ref={ref}
-      className="relative bg-card/95 p-0 gap-0 rounded-xl border border-foreground/10 shadow-[0_30px_100px_-25px_color-mix(in_srgb,var(--primary)_25%,transparent)]"
+      className="relative bg-card p-0 gap-0 rounded-xl border border-border"
     >
       <div className="h-11 px-4 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-4">

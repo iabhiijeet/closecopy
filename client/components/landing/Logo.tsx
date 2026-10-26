@@ -1,6 +1,3 @@
-import Image from "next/image";
-import type { CSSProperties } from "react";
-import { brandLogo } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 export default function Logo({
   className,
@@ -11,12 +8,6 @@ export default function Logo({
   markClassName?: string;
   markOnly?: boolean;
 }) {
-  const crop = brandLogo.crop;
-  const imageStyle = {
-    "--logo-image-width": (brandLogo.width / crop.size) * 100 + "%",
-    "--logo-image-left": (-crop.left / crop.size) * 100 + "%",
-    "--logo-image-top": (-crop.top / crop.size) * 100 + "%",
-  } as CSSProperties;
   return (
     <span
       className={cn(
@@ -24,15 +15,36 @@ export default function Logo({
         className,
       )}
     >
-      <span className={cn("logo-mark", markClassName)} style={imageStyle}>
-        <Image
-          src={brandLogo.src}
-          alt={markOnly ? "closecopy logo" : ""}
-          width={brandLogo.width}
-          height={brandLogo.height}
-          sizes="64px"
-          className="logo-image"
-        />
+      <span className={cn("logo-mark", markClassName)}>
+        <svg
+          viewBox="0 0 32 32"
+          fill="none"
+          aria-hidden="true"
+          className="size-full"
+        >
+          <rect
+            x="7"
+            y="4"
+            width="20"
+            height="23"
+            rx="5"
+            fill="var(--accent-end)"
+          />
+          <rect
+            x="4"
+            y="7"
+            width="20"
+            height="23"
+            rx="5"
+            fill="var(--primary)"
+          />
+          <path
+            d="M9 14h10M9 18h8M9 22h6"
+            stroke="var(--primary-foreground)"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
+        </svg>
       </span>
       {!markOnly && (
         <span>

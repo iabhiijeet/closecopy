@@ -42,7 +42,7 @@ function FlipCard({
               key={String(back)}
               aria-hidden={flipped !== back}
               className={
-                "absolute inset-0 rounded-2xl border border-primary/20 bg-linear-to-br from-primary/10 via-card to-cyan/5 flex flex-col items-center justify-center p-8 [backface-visibility:hidden] " +
+                "absolute inset-0 rounded-2xl border border-primary/20 bg-linear-to-br from-primary/10 via-card to-gold/5 flex flex-col items-center justify-center p-8 [backface-visibility:hidden] " +
                 (back && !reduce ? "[transform:rotateY(180deg)]" : "")
               }
               style={

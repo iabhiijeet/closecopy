@@ -59,8 +59,24 @@ try {
   watch(desktop);
   await desktop.goto(base, { waitUntil: "networkidle" });
   await expect(desktop.getByRole("heading", { level: 1 })).toHaveAccessibleName(
-    "Your sources. Your artifacts. One workspace.",
+    "Your knowledge, put to work.",
   );
+  await expect(desktop.locator("body")).toHaveCSS(
+    "background-color",
+    "rgb(250, 248, 244)",
+  );
+  await desktop
+    .getByRole("button", { name: "Toggle light and dark mode" })
+    .first()
+    .click();
+  await expect(desktop.locator("body")).toHaveCSS(
+    "background-color",
+    "rgb(15, 20, 18)",
+  );
+  await desktop
+    .getByRole("button", { name: "Toggle light and dark mode" })
+    .first()
+    .click();
   await expect(
     desktop
       .locator("#home")
@@ -222,7 +238,7 @@ try {
     .fill("curious@example.com");
   await desktop.getByRole("button", { name: "Join the newsletter" }).click();
   await expect(desktop.getByLabel("Newsletter email address")).toHaveValue("");
-  // Visit each section so scroll reveals are visible in the full-page capture.
+  // Capture the full page after interaction checks.
   for (const id of [
     "features",
     "artifacts",

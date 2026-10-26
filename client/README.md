@@ -1,52 +1,41 @@
 # closecopy
 
-A complete, dark-first landing page for an AI source workspace. Built in the existing Next.js 16 App Router project with TypeScript, Tailwind CSS 4, the repository’s Base UI-based shadcn components, Framer Motion, Lucide, Lenis, and Sonner.
+A light and dark landing page for an AI source workspace. Built with Next.js 16, TypeScript, Tailwind CSS 4, Base UI-based shadcn components, Sora, Framer Motion, Lucide, and Sonner.
 
 ## Install and run
 
-The only missing shadcn component was **sonner**, now added by the official CLI. All pre-existing generated UI files were preserved.
-
 ```powershell
 cd client
-npx shadcn@latest add sonner
 npm install
 npm run dev
 ```
 
-For this completed checkout, Sonner is already present: just run `npm install` and `npm run dev`. Visit http://localhost:3000.
-
-To add the runtime dependencies to another copy of the original repo:
-
-```powershell
-npm install framer-motion lenis sonner @fontsource-variable/geist @fontsource-variable/geist-mono @fontsource/instrument-serif
-```
-
-The fonts are self-hosted from npm packages. Building and rendering require no Google Fonts connection. Node 20.9+ is required by the existing Next.js version.
+Visit http://localhost:3000. Sora is self-hosted through `@fontsource-variable/sora`; rendering requires no Google Fonts connection. Node 20.9+ is required by the existing Next.js version.
 
 ## Theme variables
 
-Theme changes live in `app/globals.css`. Both `:root` and `.dark` use the dark palette. Components reference semantic Tailwind tokens; generated primitives are untouched.
+Theme variables live in `app/globals.css`. Light mode is the default; the navigation toggle switches to dark mode and remembers the choice. Components use semantic color tokens and Sora throughout.
 
-| Variable           | Value     | Purpose                 |
-| ------------------ | --------- | ----------------------- |
-| --background       | #09090B   | Near-black canvas       |
-| --foreground       | #F4F3FA   | Primary text            |
-| --card             | #111115   | Glass surfaces          |
-| --primary          | #8B5CF6   | Electric violet         |
-| --accent-end       | #22D3EE   | Cyan gradient endpoint  |
-| --citation         | #C6CF8D   | Warm citation highlight |
-| --muted-foreground | #9897A7   | Secondary text          |
-| --border           | #FFFFFF12 | Translucent borders     |
+| Role               | Light     | Dark      |
+| ------------------ | --------- | --------- |
+| Background         | `#FAF8F4` | `#0F1412` |
+| Cards              | `#FFFFFF` | `#171E1B` |
+| Border             | `#E6E1D8` | `#26302C` |
+| Text               | `#1A1F1D` | `#EDEAE3` |
+| Muted text         | `#6B7370` | `#8E9893` |
+| Emerald            | `#0F5C4D` | `#3FB59A` |
+| Gold               | `#C8A15A` | `#D9B572` |
+| Citation highlight | `#FFF1C2` | `#3A3420` |
 
-The font variables map to Geist Variable, Geist Mono Variable, and Instrument Serif. Custom gradient styles combine the primary and accent-end variables. Reduced-motion media rules suppress primitive CSS transitions, while MotionConfig and an SSR-safe reduced-motion preference hook govern Framer Motion. Lenis, cursor glow, autoplay, and ambient loops are disabled for reduced motion.
+The homepage uses still section layouts and subtle interaction motion. The hero workspace starts paused and can be played on demand. Reduced-motion settings also suppress remaining transitions and animations.
 
 ## Structure
 
 - `app/page.tsx`: composes all twelve sections in order.
-- `app/layout.tsx`: metadata, dark theme, shared providers and Toaster.
+- `app/layout.tsx`: metadata, shared providers, theme control, and Toaster.
 - `components/sections/`: Navbar, Hero, Marquee, Features, ArtifactsShowcase, HowItWorks, Playground, Testimonials, Pricing, FAQ, CTA, Footer.
 - `components/artifacts/`: reusable SummaryArtifact, StudyGuideArtifact, QuizArtifact, FlashcardArtifact, MindMapArtifact, TimelineArtifact, ReportArtifact, SlidesArtifact, and ArtifactRenderer.
-- `components/landing/`: custom visual helpers and motion wrappers around existing primitives; no regenerated UI components.
+- `components/landing/`: homepage visual helpers and interactions.
 - `components/ui/`: existing shadcn components plus the officially generated sonner wrapper.
 - `lib/mock-data.ts`: typed sources, excerpts, chat scripts, artifact content, pricing, FAQ, and sample testimonials.
 - `lib/artifact-export.ts`: local Markdown serialization and download.
@@ -60,7 +49,8 @@ Zustand is installed for shared client UI state. `stores/use-workspace-ui-store.
 
 ## Try the interactions
 
-- Pause or play the hero’s looping three-panel workspace.
+- Play or pause the hero’s three-panel workspace preview.
+- Switch between light and dark mode from the navigation bar.
 - Click or focus citation chips to inspect source excerpts.
 - Switch among all eight artifact tabs with mouse, touch, or keyboard.
 - Answer all quiz questions and retry. Flip flashcards and swipe their carousel.
@@ -97,4 +87,4 @@ Replace GenerateDialog’s timer with a generation job: submit selected source I
 
 ## Brand logo
 
-`public/logo.png` is the supplied logo and the single source for branding. `lib/brand.ts` defines its presentation frame; `components/landing/Logo.tsx` reuses it in navigation, the mobile drawer, footer, workspace chrome, and assistant avatars. The original image is unchanged. `app/icon.tsx` and `app/apple-icon.tsx` generate browser and home-screen icons from that same asset at build time. Root metadata also uses it for social previews.
+`components/landing/Logo.tsx` renders the homepage mark with the active emerald and gold tokens. The supplied `public/logo.png` remains in place for browser icons and social previews through `lib/brand.ts`.

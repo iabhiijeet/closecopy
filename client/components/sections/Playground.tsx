@@ -384,7 +384,7 @@ export default function Playground() {
               looks good on you.
             </>
           }
-          description="Take the workspace for a spin. Ask a question, follow a citation, or make your first artifact. It’s all right here."
+          description="Ask a question, follow a citation, or create something useful."
         />
         <Input
           ref={fileRef}

@@ -52,7 +52,7 @@ export default function Pricing() {
                 <span className="relative z-1 flex items-center gap-2">
                   {v === "monthly" ? "Monthly" : "Yearly"}
                   {v === "yearly" && (
-                    <span className="text-[8px] text-citation">Save ~20%</span>
+                    <span className="text-[8px] text-primary">Save ~20%</span>
                   )}
                 </span>
                 {billing === v && (
@@ -71,18 +71,6 @@ export default function Pricing() {
               <div className="relative h-full rounded-2xl p-px overflow-hidden">
                 {i === 1 && (
                   <>
-                    {!reduce && (
-                      <motion.div
-                        aria-hidden="true"
-                        className="absolute inset-[-50%] accent-gradient"
-                        animate={{ rotate: 360 }}
-                        transition={{
-                          duration: 10,
-                          repeat: Infinity,
-                          ease: "linear",
-                        }}
-                      />
-                    )}
                     <div className="absolute inset-0 rounded-2xl border border-primary/60" />
                   </>
                 )}
@@ -90,19 +78,19 @@ export default function Pricing() {
                   className={
                     "relative h-full p-7 gap-0 rounded-2xl border " +
                     (i === 1
-                      ? "border-primary/30 bg-card"
+                      ? "border-primary/40 bg-primary/5"
                       : "border-border bg-card")
                   }
                 >
                   <div className="flex justify-between items-center">
-                    <h3 className="text-base font-medium">{p.name}</h3>
+                    <h3 className="text-base font-semibold">{p.name}</h3>
                     {i === 1 && (
                       <Badge className="bg-primary/15 text-primary border border-primary/20 text-[8px] h-5">
                         MOST POPULAR
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-3 leading-relaxed min-h-10">
+                  <p className="text-[13px] text-muted-foreground mt-3 leading-relaxed min-h-10">
                     {p.description}
                   </p>
                   <div className="flex items-end gap-1 mt-6 mb-2">
@@ -139,7 +127,7 @@ export default function Pricing() {
                     {p.limits.map((limit, n) => (
                       <li
                         key={limit}
-                        className="flex items-center gap-2.5 text-[11px]"
+                        className="flex items-center gap-2.5 text-xs"
                       >
                         <Check className="size-3.5 text-primary shrink-0" />
                         {limit}
@@ -170,7 +158,7 @@ export default function Pricing() {
                     {p.features.map((f) => (
                       <li
                         key={f}
-                        className="text-[11px] text-muted-foreground flex gap-2.5 items-center"
+                        className="text-xs text-muted-foreground flex gap-2.5 items-center"
                       >
                         <Check className="size-3 text-muted-foreground/60" />
                         {f}

@@ -9,14 +9,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="light"
+      defaultTheme="dark"
       enableSystem={false}
       disableTransitionOnChange
     >
       <QueryClientProvider client={getQueryClient()}>
         <MotionConfig
           reducedMotion="user"
-          transition={{ duration: 0.35, ease: "easeOut" }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
         >
           <TooltipProvider delay={180}>
             {children}

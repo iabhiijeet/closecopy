@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { ArrowRight, Code2, Users, AtSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,16 +154,12 @@ export default function Footer() {
             </span>
           </div>
         </div>
-        <motion.div
+        <div
           aria-hidden="true"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.1 }}
-          className="select-none text-center text-[clamp(75px,17.5vw,210px)] leading-[.94] font-semibold tracking-[-.085em] text-foreground/[0.035] -mb-[.08em]"
+          className="select-none text-center text-[clamp(75px,17.5vw,210px)] leading-[.94] font-semibold tracking-[-.085em] text-foreground/5 -mb-[.08em]"
         >
           closecopy<span className="text-primary/10">.</span>
-        </motion.div>
+        </div>
       </div>
     </footer>
   );

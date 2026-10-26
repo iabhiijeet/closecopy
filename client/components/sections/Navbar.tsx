@@ -1,7 +1,6 @@
 "use client";
-import { motion, useMotionValueEvent, useScroll } from "framer-motion";
-import { useState } from "react";
-import { Menu, ArrowUpRight } from "lucide-react";
+import { Menu, ArrowUpRight, SunMoon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -28,21 +27,25 @@ const links = [
   ["Pricing", "pricing"],
   ["FAQ", "faq"],
 ];
-export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const { scrollY } = useScroll();
-  useMotionValueEvent(scrollY, "change", (v) => setScrolled(v > 20));
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme();
   return (
-    <motion.header
-      initial={{ opacity: 0, y: -12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={
-        "fixed inset-x-0 top-0 z-40 border-b " +
-        (scrolled
-          ? "bg-background/80 backdrop-blur-xl border-border"
-          : "border-transparent")
-      }
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label="Toggle light and dark mode"
+      title="Toggle light and dark mode"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="text-muted-foreground hover:text-foreground"
     >
+      <SunMoon className="size-4" />
+    </Button>
+  );
+}
+
+export default function Navbar() {
+  return (
+    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-[12px]">
       <div className="container-page flex h-19 items-center justify-between gap-5">
         <a href="#home" aria-label="closecopy home" className="text-[25px]">
           <Logo />
@@ -53,7 +56,7 @@ export default function Navbar() {
               <NavigationMenuItem key={id}>
                 <NavigationMenuLink
                   href={"#" + id}
-                  className="text-[11px] text-muted-foreground px-2"
+                  className="text-xs text-muted-foreground px-2 hover:text-foreground"
                 >
                   {label}
                 </NavigationMenuLink>
@@ -62,6 +65,7 @@ export default function Navbar() {
           </NavigationMenuList>
         </NavigationMenu>
         <div className="hidden md:flex items-center gap-3">
+          <ThemeToggle />
           <Button
             variant="ghost"
             className="text-xs"
@@ -79,6 +83,9 @@ export default function Navbar() {
           >
             Get started <ArrowUpRight className="size-3.5" />
           </MagneticButton>
+        </div>
+        <div className="ml-auto md:hidden">
+          <ThemeToggle />
         </div>
         <Sheet>
           <SheetTrigger
@@ -136,6 +143,6 @@ export default function Navbar() {
           </SheetContent>
         </Sheet>
       </div>
-    </motion.header>
+    </header>
   );
 }

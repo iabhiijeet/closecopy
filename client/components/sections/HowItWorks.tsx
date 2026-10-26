@@ -1,16 +1,9 @@
 "use client";
-import { useReducedMotionPreference as useReducedMotion } from "@/components/landing/useReducedMotionPreference";
-import { useRef, useState } from "react";
-import {
-  AnimatePresence,
-  motion,
-  useScroll,
-  useMotionValueEvent,
-} from "framer-motion";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   UploadCloud,
   FileText,
-  ArrowDown,
   ArrowUpRight,
   Network,
   ListChecks,
@@ -160,21 +153,11 @@ function StepVisual({ step }: { step: number }) {
   );
 }
 export default function HowItWorks() {
-  const ref = useRef<HTMLElement>(null);
   const [step, setStep] = useState(0);
-  const reduce = useReducedMotion();
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start center", "end center"],
-  });
-  useMotionValueEvent(scrollYProgress, "change", (v) =>
-    setStep(Math.min(2, Math.floor(v * 3))),
-  );
   return (
     <section
       id="how-it-works"
-      ref={ref}
-      className="section-space border-y border-border bg-card/20"
+      className="section-space border-y border-border bg-card/30"
     >
       <div className="container-page">
         <SectionHeading
@@ -187,31 +170,20 @@ export default function HowItWorks() {
             </>
           }
         />
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-start lg:min-h-230">
-          <div className="relative lg:sticky lg:top-30">
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 2 450"
-              className="absolute left-5 top-5 w-px h-[calc(100%-50px)]"
-            >
-              <path d="M1 0V450" stroke="var(--border)" />
-              <motion.path
-                d="M1 0V450"
-                stroke="var(--primary)"
-                style={{ pathLength: reduce ? 1 : scrollYProgress }}
-              />
-            </svg>
+        <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-18">
+          <div className="space-y-3">
             {steps.map((s, i) => (
-              <motion.div
+              <button
+                type="button"
                 key={s.title}
-                onViewportEnter={() => {
-                  if (window.innerWidth < 1024) setStep(i);
-                }}
+                onClick={() => setStep(i)}
+                aria-pressed={step === i}
                 className={
-                  "relative flex gap-6 min-h-44 sm:min-h-52 pb-10 " +
-                  (step === i ? "opacity-100" : "opacity-55")
+                  "flex w-full gap-5 rounded-xl border p-5 text-left transition-colors duration-200 " +
+                  (step === i
+                    ? "border-primary/40 bg-primary/5"
+                    : "border-border bg-card hover:border-primary/25")
                 }
-                animate={{ opacity: step === i ? 1 : 0.55 }}
               >
                 <span
                   className={
@@ -232,15 +204,12 @@ export default function HowItWorks() {
                     {s.text}
                   </p>
                 </div>
-              </motion.div>
+              </button>
             ))}
           </div>
-          <div className="lg:sticky lg:top-35">
+          <div className="lg:sticky lg:top-28">
             <Reveal>
               <StepVisual step={step} />
-              <p className="text-[9px] text-muted-foreground mt-4 flex justify-center gap-2 items-center">
-                <ArrowDown className="size-3" /> Scroll to explore the flow
-              </p>
             </Reveal>
           </div>
         </div>

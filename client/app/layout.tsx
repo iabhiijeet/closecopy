@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
+import { Geist, Newsreader } from "next/font/google";
 import { brandLogo } from "@/lib/brand";
 import Providers from "@/components/landing/Providers";
 import "./globals.css";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist", display: "swap" });
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-newsreader",
+  display: "swap",
+  style: ["normal", "italic"],
+});
 export const metadata: Metadata = {
   title: "closecopy — From sources to something remarkable",
   description:
@@ -26,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={`${geist.variable} ${newsreader.variable}`} suppressHydrationWarning>
       <body className="antialiased">
         <Providers>{children}</Providers>
       </body>

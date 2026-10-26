@@ -1,15 +1,13 @@
 @import "tailwindcss";
-@import "@fontsource-variable/sora";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "lenis/dist/lenis.css";
 @custom-variant dark (&:is(.dark *));
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sora);
-  --font-mono: var(--font-sora);
-  --font-heading: var(--font-sora);
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-geist);
+  --font-heading: var(--font-newsreader);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -51,7 +49,6 @@
 }
 :root {
   color-scheme: light;
-  --font-sora: "Sora Variable", "Sora", sans-serif;
   --background: #faf8f4;
   --foreground: #1a1f1d;
   --card: #ffffff;
@@ -60,6 +57,8 @@
   --popover-foreground: #1a1f1d;
   --primary: #0f5c4d;
   --primary-foreground: #ffffff;
+  --primary-fill: #0f5c4d;
+  --primary-fill-foreground: #ffffff;
   --accent-end: #c8a15a;
   --secondary: #f1eee7;
   --secondary-foreground: #1a1f1d;
@@ -74,7 +73,7 @@
   --border: #e6e1d8;
   --input: #e6e1d8;
   --ring: #0f5c4d;
-  --radius: 0.75rem;
+  --radius: 0.5rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #1a1f1d;
   --sidebar-primary: #0f5c4d;
@@ -91,35 +90,37 @@
 }
 .dark {
   color-scheme: dark;
-  --background: #0f1412;
+  --background: #0c1110;
   --foreground: #edeae3;
-  --card: #171e1b;
+  --card: #131a18;
   --card-foreground: #edeae3;
-  --popover: #171e1b;
+  --popover: #182220;
   --popover-foreground: #edeae3;
   --primary: #3fb59a;
-  --primary-foreground: #0f1412;
+  --primary-foreground: #0c1110;
+  --primary-fill: #0f5c4d;
+  --primary-fill-foreground: #edeae3;
   --accent-end: #d9b572;
-  --secondary: #202925;
+  --secondary: #182220;
   --secondary-foreground: #edeae3;
-  --muted: #202925;
-  --muted-foreground: #8e9893;
-  --accent: #26302c;
+  --muted: #182220;
+  --muted-foreground: #9aa5a0;
+  --accent: #24302d;
   --accent-foreground: #edeae3;
   --citation: #3a3420;
   --citation-foreground: #f3dda6;
   --success: #3fb59a;
   --destructive: #ef8c8c;
-  --border: #26302c;
-  --input: #26302c;
+  --border: #24302d;
+  --input: #24302d;
   --ring: #3fb59a;
-  --sidebar: #171e1b;
+  --sidebar: #131a18;
   --sidebar-foreground: #edeae3;
   --sidebar-primary: #3fb59a;
   --sidebar-primary-foreground: #0f1412;
-  --sidebar-accent: #26302c;
+  --sidebar-accent: #182220;
   --sidebar-accent-foreground: #edeae3;
-  --sidebar-border: #26302c;
+  --sidebar-border: #24302d;
   --sidebar-ring: #3fb59a;
   --chart-1: #3fb59a;
   --chart-2: #d9b572;
@@ -139,6 +140,7 @@
   body {
     @apply bg-background text-foreground;
     margin: 0;
+    line-height: 1.6;
   }
   button,
   [role="button"],
@@ -159,18 +161,25 @@
     @apply mx-auto w-full max-w-6xl px-5 sm:px-8 lg:px-10;
   }
   .section-space {
-    @apply py-20 sm:py-26;
+    @apply py-24 sm:py-30;
   }
   .section-title {
-    @apply text-[30px] sm:text-[42px] font-semibold tracking-[-0.055em] leading-[1.18];
+    @apply text-[32px] sm:text-[44px] font-semibold tracking-[-0.02em] leading-[1.12];
   }
   .eyebrow {
     @apply text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-semibold text-primary;
   }
   .serif {
-    font-family: var(--font-sora);
-    font-weight: 650;
-    font-style: normal;
+    font-family: var(--font-newsreader), Georgia, serif;
+    font-weight: 500;
+    font-style: italic;
+    letter-spacing: -0.01em;
+  }
+  .hero-title {
+    font-family: var(--font-newsreader), Georgia, serif;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
   }
   .accent-gradient {
     background: var(--primary);
@@ -179,14 +188,14 @@
     color: var(--primary);
   }
   .gradient-button {
-    background: var(--primary);
-    color: var(--primary-foreground);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 12%, transparent);
+    background: var(--primary-fill);
+    color: var(--primary-fill-foreground);
+    box-shadow: 0 5px 18px color-mix(in srgb, var(--foreground) 5%, transparent);
   }
   .glass {
     background: var(--card);
     border: 1px solid var(--border);
-    box-shadow: 0 16px 45px color-mix(in srgb, var(--foreground) 4%, transparent);
+    box-shadow: 0 8px 28px color-mix(in srgb, var(--foreground) 4%, transparent);
   }
   .spotlight {
     background: radial-gradient(
@@ -236,15 +245,6 @@
     flex-shrink: 0;
     overflow: hidden;
     border-radius: 6px;
-  }
-  .logo-image {
-    position: absolute;
-    width: var(--logo-image-width);
-    max-width: none;
-    height: auto;
-    left: var(--logo-image-left);
-    top: var(--logo-image-top);
-    mix-blend-mode: screen;
   }
   .aurora-orb {
     background: radial-gradient(

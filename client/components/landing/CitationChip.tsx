@@ -35,7 +35,7 @@ export default function CitationChip({ citation }: { citation: Citation }) {
         </Badge>
       </HoverCardTrigger>
       <HoverCardContent className="w-75 p-4">
-        <div className="flex gap-2 items-center text-xs mb-2 text-citation">
+        <div className="flex gap-2 items-center text-xs mb-2 text-citation-foreground">
           <BookOpen className="size-3.5" />
           {source?.name}
           <ExternalLink className="size-3 ml-auto" />

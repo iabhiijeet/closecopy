@@ -14,8 +14,8 @@ export default function SectionHeading({
     <Reveal
       className={
         align === "center"
-          ? "mx-auto mb-12 max-w-2xl text-center"
-          : "mb-10 max-w-xl"
+          ? "mx-auto mb-11 max-w-2xl text-center"
+          : "mb-9 max-w-xl"
       }
     >
       <p className="eyebrow mb-4">
@@ -24,7 +24,7 @@ export default function SectionHeading({
       </p>
       <h2 className="section-title">{title}</h2>
       {description && (
-        <p className="mt-5 text-muted-foreground leading-relaxed text-base">
+        <p className="mt-4 text-muted-foreground leading-relaxed text-sm sm:text-[15px]">
           {description}
         </p>
       )}

@@ -133,7 +133,8 @@ export default function QuizArtifact({
               >
                 <p
                   className={
-                    "text-xs " + (correct ? "text-success" : "text-citation")
+                    "text-xs " +
+                    (correct ? "text-success" : "text-citation-foreground")
                   }
                 >
                   {correct

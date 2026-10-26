@@ -26,7 +26,10 @@ export default function ArtifactsShowcase() {
   }, []);
   const active = artifactTypes.find((a) => a.id === type)!;
   return (
-    <section aria-label="Artifact showcase" className="section-space relative">
+    <section
+      aria-label="Artifact showcase"
+      className="section-space relative overflow-hidden"
+    >
       <div
         aria-hidden="true"
         className="aurora-orb absolute -z-10 left-1/4 top-0 w-150 h-150 opacity-40"
@@ -41,11 +44,15 @@ export default function ArtifactsShowcase() {
               something you can <span className="serif text-primary">use.</span>
             </>
           }
-          description="Don’t just get an answer. Make a study guide, a starting point, a new perspective. Your knowledge has places to go."
+          description="Make a study guide, quiz, report, or a fresh starting point."
         />
         <Reveal>
-          <Tabs value={type} onValueChange={(v) => setType(v as ArtifactType)}>
-            <div className="overflow-x-auto pb-4 flex sm:justify-center">
+          <Tabs
+            className="w-full min-w-0"
+            value={type}
+            onValueChange={(v) => setType(v as ArtifactType)}
+          >
+            <div className="w-full min-w-0 overflow-x-auto pb-4 sm:flex sm:justify-center">
               <TabsList className="bg-card border border-border h-11! gap-1 p-1 rounded-xl">
                 {artifactTypes.map((a) => (
                   <TabsTrigger

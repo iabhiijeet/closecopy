@@ -5,6 +5,7 @@ import { embedTexts } from "../lib/openai.js";
 import { extractPdfFromCloudinary } from "../lib/pdf.js";
 import {
     deleteSourceVectors,
+    isPineconeConfigured,
     type VectorMetadata,
     upsertSourceVectors,
 } from "../lib/pinecone.js";
@@ -31,26 +32,57 @@ type SourceMetadata = {
     processingError?: string;
     chunkCount?: number;
     pageCount?: number;
+    pages?: string[];
     indexedAt?: string;
 };
 
+function getSourceMetadata(source: SourceRecord): SourceMetadata {
+    return source.metadata &&
+        typeof source.metadata === "object" &&
+        !Array.isArray(source.metadata)
+        ? (source.metadata as SourceMetadata)
+        : {};
+}
+
 async function extractSourceText(source: SourceRecord) {
+    const metadata = getSourceMetadata(source);
     const text = source.content?.trim();
+
     if (text) {
+        const pages =
+            Array.isArray(metadata.pages) &&
+            metadata.pages.every((page) => typeof page === "string")
+                ? metadata.pages
+                : undefined;
+
+        if (source.type === "PDF" && !pages?.length && metadata.fileUrl) {
+            // Older PDF sources stored content without per-page text. Re-extract
+            // once so citations can include page numbers; fall back to content.
+            try {
+                const extracted = await extractPdfFromCloudinary({
+                    fileUrl: metadata.fileUrl,
+                    publicId: metadata.publicId,
+                    resourceType: metadata.resourceType ?? "raw",
+                });
+
+                return {
+                    text: extracted.text || text,
+                    pageCount: extracted.pageCount,
+                    pages: extracted.pages,
+                };
+            } catch {
+                // Keep the previously extracted content when Cloudinary is unavailable.
+            }
+        }
+
         return {
             text,
-            pageCount: undefined,
-            pages: undefined,
+            pageCount: metadata.pageCount,
+            pages,
         };
     }
 
     if (source.type === "PDF") {
-        const metadata =
-            source.metadata &&
-            typeof source.metadata === "object" &&
-            !Array.isArray(source.metadata)
-                ? (source.metadata as SourceMetadata)
-                : {};
         if (!metadata.fileUrl) {
             throw new Error("PDF source is missing fileUrl metadata");
         }
@@ -58,7 +90,7 @@ async function extractSourceText(source: SourceRecord) {
         const extracted = await extractPdfFromCloudinary({
             fileUrl: metadata.fileUrl,
             publicId: metadata.publicId,
-            resourceType: metadata.resourceType ?? "image",
+            resourceType: metadata.resourceType ?? "raw",
         });
         return {
             text: extracted.text,
@@ -70,8 +102,20 @@ async function extractSourceText(source: SourceRecord) {
     throw new Error(`Source ${source.id} has no extractable content`);
 }
 
-export function markSourceProcessing(sourceId: string) {
-    return updateSourceRecord(sourceId, { status: "PROCESSING" });
+export async function markSourceProcessing(sourceId: string) {
+    const source = await findSourceById(sourceId);
+
+    if (!source) {
+        throw new Error("Source not found");
+    }
+
+    const metadata = getSourceMetadata(source);
+    delete metadata.processingError;
+
+    return updateSourceRecord(sourceId, {
+        status: "PROCESSING",
+        metadata: metadata as Prisma.InputJsonValue,
+    });
 }
 
 export async function markSourceFailed(
@@ -117,6 +161,9 @@ export async function extractSourceContent(sourceId: string) {
         metadata: {
             ...metadata,
             pageCount: extracted.pageCount ?? metadata.pageCount,
+            ...(extracted.pages?.length
+                ? { pages: extracted.pages }
+                : {}),
         },
     });
 
@@ -157,7 +204,9 @@ export async function removeSourceFromIndex(
     workspaceId: string,
     sourceId: string,
 ) {
-    await deleteSourceVectors(workspaceId, sourceId);
+    if (isPineconeConfigured()) {
+        await deleteSourceVectors(workspaceId, sourceId);
+    }
     await deleteChunksBySourceId(sourceId);
 }
 
@@ -229,6 +278,10 @@ export async function embedAndIndexSource(
         }
     }
 
+    // Remove stale vectors from a previous processing run before upserting.
+    if (isPineconeConfigured()) {
+        await deleteSourceVectors(source.workspaceId, source.id);
+    }
     await upsertSourceVectors(source.workspaceId, records);
 
     const metadata =
@@ -244,7 +297,6 @@ export async function embedAndIndexSource(
             ...metadata,
             chunkCount: chunks.length,
             indexedAt: new Date().toISOString(),
-            processingError: undefined,
         },
     });
 }

@@ -1,3 +1,4 @@
+import { CHUNK_OVERLAP, CHUNK_SIZE } from "./ai-config.js";
 
 export type TextChunk = {
     index: number;
@@ -6,56 +7,40 @@ export type TextChunk = {
 };
 
 /** Default maximum characters per chunk when no option is passed. */
-const DEFAULT_CHUNK_SIZE = 1000;
+const DEFAULT_CHUNK_SIZE = CHUNK_SIZE;
 
 /** Default overlap between consecutive chunks (helps preserve context at boundaries). */
-const DEFAULT_CHUNK_OVERLAP = 100;
+const DEFAULT_CHUNK_OVERLAP = CHUNK_OVERLAP;
 
 /**
  * Separators tried in order, from "most natural" to "most aggressive".
  *
- * The splitter walks this list and uses the first separator that actually
- * breaks the text into multiple parts. If none work, it falls back to raw
- * character slicing (the empty string `""` case in `splitText`).
+ * Oversized pieces are recursively split with the next separator so a single
+ * long paragraph or sentence can never produce an over-limit chunk.
  */
 const SEPARATORS = ["\n\n", "\n", ". ", " ", ""];
 
 /**
- * Combines small text splits into larger chunks without exceeding `chunkSize`.
- *
- * Think of this as packing sentences/paragraphs into boxes: keep adding splits
- * until the next one would overflow the box, then seal the box and start a new one.
- *
- * @param splits - Pieces produced by splitting on one separator (e.g. paragraphs)
- * @param separator - The separator to re-join with (e.g. `"\n\n"`)
- * @param chunkSize - Maximum characters allowed in one merged chunk
- * @returns An array of merged chunk strings
- *
+ * Character-level fallback for text with no usable separators.
+ * `chunkOverlap` is clamped so the loop always advances.
  */
-function mergeSplits(splits: string[], separator: string, chunkSize: number) {
-    const docs: string[] = [];
-    let current: string[] = [];
-    let total = 0;
+function sliceByCharacters(
+    text: string,
+    chunkSize: number,
+    chunkOverlap: number,
+) {
+    const step = Math.max(1, chunkSize - chunkOverlap);
+    const chunks: string[] = [];
 
-    for (const split of splits) {
-        const len = split.length;
-        const sepLen = current.length > 0 ? separator.length : 0;
+    for (let i = 0; i < text.length; i += step) {
+        chunks.push(text.slice(i, i + chunkSize));
 
-        if (total + len + sepLen > chunkSize && current.length > 0) {
-            docs.push(current.join(separator));
-            total = 0;
-            current = [];
+        if (i + chunkSize >= text.length) {
+            break;
         }
-
-        current.push(split);
-        total += len + sepLen;
     }
 
-    if (current.length > 0) {
-        docs.push(current.join(separator));
-    }
-
-    return docs;
+    return chunks;
 }
 
 /**
@@ -68,36 +53,99 @@ function mergeSplits(splits: string[], separator: string, chunkSize: number) {
  * 4. Then word boundaries (` `)
  * 5. Last resort: slice by character count with overlap
  *
- * The first separator that produces usable chunks wins; later separators are skipped.
+ * Splits that are still larger than `chunkSize` are recursively split with the
+ * next separator instead of being emitted oversized.
  *
  * @param text - Full text to split
  * @param chunkSize - Target max characters per chunk
  * @param chunkOverlap - Characters repeated between adjacent chunks (character fallback only)
+ * @param separatorIndex - Separator currently being tried
  * @returns Array of non-empty chunk strings (no `index` or `metadata` yet)
  *
  */
-function splitText(text: string, chunkSize: number, chunkOverlap: number) {
-    const chunks: string[] = [];
+function splitText(
+    text: string,
+    chunkSize: number,
+    chunkOverlap: number,
+    separatorIndex = 0,
+): string[] {
+    const normalized = text.trim();
 
-    for (const separator of SEPARATORS) {
-        if (separator) {
-            const splits = text.split(separator).filter(Boolean);
-            if (splits.length === 1) {
-                continue;
-            }
-            chunks.push(...mergeSplits(splits, separator, chunkSize));
-        } else {
-            for (let i = 0; i < text.length; i += chunkSize - chunkOverlap) {
-                chunks.push(text.slice(i, i + chunkSize));
-            }
-        }
-
-        if (chunks.length > 0) {
-            break;
-        }
+    if (!normalized) {
+        return [];
     }
 
-    return chunks.filter((chunk) => chunk.trim().length > 0);
+    if (normalized.length <= chunkSize) {
+        return [normalized];
+    }
+
+    const separator = SEPARATORS[separatorIndex];
+
+    if (separator === undefined || separator === "") {
+        return sliceByCharacters(normalized, chunkSize, chunkOverlap);
+    }
+
+    const splits = normalized
+        .split(separator)
+        .filter((split) => split.trim().length > 0);
+
+    if (splits.length <= 1) {
+        return splitText(
+            normalized,
+            chunkSize,
+            chunkOverlap,
+            separatorIndex + 1,
+        );
+    }
+
+    const docs: string[] = [];
+    let current: string[] = [];
+    let total = 0;
+
+    const flush = () => {
+        if (current.length === 0) {
+            return;
+        }
+
+        const chunk = current.join(separator).trim();
+        if (chunk) {
+            docs.push(chunk);
+        }
+
+        current = [];
+        total = 0;
+    };
+
+    for (const split of splits) {
+        if (split.length > chunkSize) {
+            flush();
+            docs.push(
+                ...splitText(
+                    split,
+                    chunkSize,
+                    chunkOverlap,
+                    separatorIndex + 1,
+                ),
+            );
+            continue;
+        }
+
+        const separatorLength = current.length > 0 ? separator.length : 0;
+
+        if (
+            total + split.length + separatorLength > chunkSize &&
+            current.length > 0
+        ) {
+            flush();
+        }
+
+        current.push(split);
+        total += split.length + (current.length > 1 ? separator.length : 0);
+    }
+
+    flush();
+
+    return docs;
 }
 
 /**
@@ -120,8 +168,14 @@ export function chunkText(
         metadata?: Record<string, unknown>;
     } = {},
 ): TextChunk[] {
-    const chunkSize = options.chunkSize ?? DEFAULT_CHUNK_SIZE;
-    const chunkOverlap = options.chunkOverlap ?? DEFAULT_CHUNK_OVERLAP;
+    const chunkSize = Math.max(1, options.chunkSize ?? DEFAULT_CHUNK_SIZE);
+    const chunkOverlap = Math.max(
+        0,
+        Math.min(
+            options.chunkOverlap ?? DEFAULT_CHUNK_OVERLAP,
+            chunkSize - 1,
+        ),
+    );
     const parts = splitText(text.trim(), chunkSize, chunkOverlap);
 
     return parts.map((content, index) => ({

@@ -1,4 +1,5 @@
 import { MemoryClient } from "mem0ai";
+import { AppError, NotFoundError } from "../types/app-error.js";
 
 let client: MemoryClient | null = null;
 let clientKey: string | null = null;
@@ -13,7 +14,10 @@ export function getMem0Client(): MemoryClient {
     const apiKey = process.env.MEM0_API_KEY?.trim();
 
     if (!apiKey) {
-        throw new Error("MEM0_API_KEY is not configured");
+        throw new AppError(
+            503,
+            "Mem0 is not configured. Set MEM0_API_KEY on the server.",
+        );
     }
 
     const host = process.env.MEM0_HOST?.trim() || undefined;
@@ -129,6 +133,75 @@ function mapMemory(record: RawMemory): AppMemory {
         categories: record.categories,
         source,
     };
+}
+
+type OwnedMemoryRecord = RawMemory & {
+    userId?: string;
+    owner?: string | null;
+};
+
+/**
+ * Loads a memory and verifies it belongs to the authenticated user.
+ *
+ * Mem0's `get` usually returns `userId`/`owner`; when it does not, we scan the
+ * user's memory pages so a memory id from another user cannot be mutated.
+ *
+ * @throws {NotFoundError} When the memory is missing or owned by another user
+ */
+async function findOwnedMemoryRecord(
+    userId: string,
+    memoryId: string,
+): Promise<RawMemory> {
+    const client = getMem0Client();
+    const expectedOwner = getMem0UserId(userId);
+
+    let record: OwnedMemoryRecord | null;
+
+    try {
+        record = (await client.get(memoryId)) as unknown as OwnedMemoryRecord;
+    } catch (error) {
+        const message = error instanceof Error ? error.message.toLowerCase() : "";
+
+        if (message.includes("404") || message.includes("not found")) {
+            throw new NotFoundError("Memory not found");
+        }
+
+        throw error;
+    }
+
+    if (!record) {
+        throw new NotFoundError("Memory not found");
+    }
+
+    const owner = record.userId ?? record.owner ?? undefined;
+
+    if (owner) {
+        if (owner !== expectedOwner) {
+            throw new NotFoundError("Memory not found");
+        }
+
+        return record;
+    }
+
+    for (let page = 1; page <= 10; page += 1) {
+        const result = await client.getAll({
+            filters: getUserFilters(userId),
+            page,
+            pageSize: 100,
+        });
+
+        const match = result.results?.find((memory) => memory.id === memoryId);
+
+        if (match) {
+            return match as RawMemory;
+        }
+
+        if (!result.next || (result.results?.length ?? 0) < 100) {
+            break;
+        }
+    }
+
+    throw new NotFoundError("Memory not found");
 }
 
 /**
@@ -268,14 +341,17 @@ export async function addMemoriesFromMessages(
 }
 
 /**
- * Updates the text of an existing memory by id.
+ * Updates the text of an existing memory after verifying ownership.
  *
+ * @param userId - Authenticated user's id
  * @param memoryId - Mem0 memory id
  * @param input - New memory text
  * @returns Updated memory record
+ * @throws {NotFoundError} When the memory is missing or owned by another user
  * @throws When Mem0 returns no updated record
  */
 export async function updateUserMemory(
+    userId: string,
     memoryId: string,
     input: { memory: string },
 ): Promise<AppMemory> {
@@ -284,6 +360,8 @@ export async function updateUserMemory(
     if (!memory) {
         throw new Error("Memory text is required");
     }
+
+    await findOwnedMemoryRecord(userId, memoryId);
 
     const response = (await getMem0Client().update(memoryId, {
         text: memory,
@@ -298,11 +376,17 @@ export async function updateUserMemory(
 }
 
 /**
- * Permanently deletes a memory from Mem0.
+ * Permanently deletes a memory from Mem0 after verifying ownership.
  *
+ * @param userId - Authenticated user's id
  * @param memoryId - Mem0 memory id to delete
  * @returns Resolves when deletion completes
+ * @throws {NotFoundError} When the memory is missing or owned by another user
  */
-export async function deleteUserMemory(memoryId: string): Promise<void> {
+export async function deleteUserMemory(
+    userId: string,
+    memoryId: string,
+): Promise<void> {
+    await findOwnedMemoryRecord(userId, memoryId);
     await getMem0Client().delete(memoryId);
 }

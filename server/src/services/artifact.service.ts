@@ -1,28 +1,130 @@
-import { openai } from "@ai-sdk/openai";
-import { generateText } from "ai";
+import type { Prisma } from "../generated/prisma/client.js";
 import { CHAT_MODEL } from "../lib/ai-config.js";
-import prisma from "../lib/db.js";
-import { findChunksBySourceId } from "../repository/source-chunk.repository.js";
+import { enqueueArtifactGeneration } from "../lib/artifact-event.js";
+import {
+    createArtifactRecord,
+    deleteArtifactRecord,
+    findArtifactById,
+    findArtifactByIdAndWorkspaceId,
+    findArtifactsByWorkspaceId,
+    updateArtifactRecord,
+    type ArtifactRecord,
+} from "../repository/artifact.repository.js";
+import { NotFoundError } from "../types/app-error.js";
+import type { CreateArtifactInput } from "../validators/artifact.validator.js";
+import {
+    gatherSourceContext,
+    generateArtifactContent,
+} from "./artifact-generation.service.js";
+import { getWorkspaceByIdForUser } from "./workspace.service.js";
 
-const MAX_CONTEXT_CHUNKS = 40;
-
-const ARTIFACT_INSTRUCTIONS: Record<string, string> = {
-    SUMMARY:
-        "Write a structured summary with a short overview, the main ideas, and key details.",
-    TAKEAWAYS:
-        "Write 5-10 concise, actionable key takeaways as a numbered list.",
-    FLASHCARDS:
-        "Create 8-12 flashcards. Format each as `Q: ...` followed by `A: ...`.",
-    QUIZ:
-        "Create a quiz with 8-10 questions. Include the correct answer after each question.",
-    MINDMAP:
-        "Describe a mind map as a nested outline with the central topic first.",
-    REPORT:
-        "Write a structured report with headings, findings, and a conclusion.",
+const ARTIFACT_TITLES: Record<ArtifactRecord["type"], string> = {
+    SUMMARY: "Summary",
+    TAKEAWAYS: "Key takeaways",
+    FLASHCARDS: "Flashcards",
+    QUIZ: "Quiz",
+    MINDMAP: "Mind map",
+    REPORT: "Report",
 };
 
+function getMetadata(metadata: ArtifactRecord["metadata"]) {
+    return metadata &&
+        typeof metadata === "object" &&
+        !Array.isArray(metadata)
+        ? { ...(metadata as Record<string, unknown>) }
+        : {};
+}
+
 /**
- * Generates a learning artifact from the source chunks attached to it.
+ * Lists learning artifacts for a workspace after verifying ownership.
+ */
+export async function listArtifactsForWorkspace(
+    workspaceId: string,
+    userId: string,
+) {
+    await getWorkspaceByIdForUser(workspaceId, userId);
+    return findArtifactsByWorkspaceId(workspaceId);
+}
+
+/**
+ * Loads one artifact from a workspace after verifying ownership.
+ */
+export async function getArtifactForWorkspace(
+    workspaceId: string,
+    artifactId: string,
+    userId: string,
+) {
+    await getWorkspaceByIdForUser(workspaceId, userId);
+
+    const artifact = await findArtifactByIdAndWorkspaceId(
+        artifactId,
+        workspaceId,
+    );
+
+    if (!artifact) {
+        throw new NotFoundError("Artifact not found");
+    }
+
+    return artifact;
+}
+
+/**
+ * Creates an artifact row and queues asynchronous generation.
+ *
+ * Source context is gathered up front so invalid or unprocessed source ids are
+ * rejected before a PENDING artifact is persisted.
+ */
+export async function createArtifactForWorkspace(
+    workspaceId: string,
+    userId: string,
+    input: CreateArtifactInput,
+) {
+    await getWorkspaceByIdForUser(workspaceId, userId);
+
+    const context = await gatherSourceContext(workspaceId, input.sourceIds);
+    const title = input.title?.trim() || ARTIFACT_TITLES[input.type];
+
+    const artifact = await createArtifactRecord({
+        workspaceId,
+        type: input.type,
+        title,
+        sourceIds: context.sourceIds,
+        status: "PENDING",
+    });
+
+    try {
+        await enqueueArtifactGeneration({ artifactId: artifact.id });
+    } catch (error) {
+        await updateArtifactRecord(artifact.id, {
+            status: "FAILED",
+            metadata: {
+                ...getMetadata(artifact.metadata),
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to enqueue artifact generation",
+            },
+        });
+        throw error;
+    }
+
+    return artifact;
+}
+
+/**
+ * Deletes an artifact after verifying it belongs to the workspace.
+ */
+export async function deleteArtifactForWorkspace(
+    workspaceId: string,
+    artifactId: string,
+    userId: string,
+) {
+    await getArtifactForWorkspace(workspaceId, artifactId, userId);
+    await deleteArtifactRecord(artifactId);
+}
+
+/**
+ * Generates a learning artifact from its workspace sources.
  *
  * The artifact is marked `PROCESSING` while generation runs and `READY` on
  * success. Failures are persisted as `FAILED` before the error is rethrown so
@@ -32,83 +134,46 @@ const ARTIFACT_INSTRUCTIONS: Record<string, string> = {
  * @returns Updated artifact record
  */
 export async function processArtifactById(artifactId: string) {
-    const artifact = await prisma.learningArtifact.findUnique({
-        where: { id: artifactId },
-    });
+    const artifact = await findArtifactById(artifactId);
 
     if (!artifact) {
-        throw new Error(`Learning artifact ${artifactId} not found`);
+        throw new NotFoundError(`Learning artifact ${artifactId} not found`);
     }
 
-    await prisma.learningArtifact.update({
-        where: { id: artifactId },
-        data: { status: "PROCESSING" },
-    });
+    await updateArtifactRecord(artifactId, { status: "PROCESSING" });
 
     try {
-        const chunkGroups = await Promise.all(
-            artifact.sourceIds.map((sourceId) =>
-                findChunksBySourceId(sourceId),
-            ),
+        const context = await gatherSourceContext(
+            artifact.workspaceId,
+            artifact.sourceIds,
         );
-        const context = chunkGroups
-            .flat()
-            .slice(0, MAX_CONTEXT_CHUNKS)
-            .map((chunk) => chunk.content)
-            .join("\n\n");
+        const content = await generateArtifactContent(
+            artifact.type,
+            context.text,
+        );
 
-        if (!context.trim()) {
-            throw new Error(
-                `Artifact ${artifactId} has no indexed source content`,
-            );
+        if (!content) {
+            throw new Error("Artifact generation returned no content");
         }
 
-        const instruction =
-            ARTIFACT_INSTRUCTIONS[artifact.type] ??
-            "Produce a clear, well-structured learning artifact.";
-
-        const { text } = await generateText({
-            model: openai(CHAT_MODEL),
-            system: [
-                "You create learning artifacts from a user's workspace sources.",
-                "Use only the supplied context. Do not invent facts or citations.",
-                instruction,
-            ].join("\n"),
-            prompt: `Artifact title: ${artifact.title}\n\nSource content:\n${context}`,
-        });
-
-        return await prisma.learningArtifact.update({
-            where: { id: artifactId },
-            data: {
-                status: "READY",
-                content: { text: text.trim() },
-                metadata: {
-                    ...(artifact.metadata &&
-                    typeof artifact.metadata === "object" &&
-                    !Array.isArray(artifact.metadata)
-                        ? artifact.metadata
-                        : {}),
-                    generatedAt: new Date().toISOString(),
-                    model: CHAT_MODEL,
-                },
+        return await updateArtifactRecord(artifactId, {
+            status: "READY",
+            content: content as Prisma.InputJsonValue,
+            metadata: {
+                ...getMetadata(artifact.metadata),
+                generatedAt: new Date().toISOString(),
+                model: CHAT_MODEL,
             },
         });
     } catch (error) {
-        await prisma.learningArtifact.update({
-            where: { id: artifactId },
-            data: {
-                status: "FAILED",
-                metadata: {
-                    ...(artifact.metadata &&
-                    typeof artifact.metadata === "object" &&
-                    !Array.isArray(artifact.metadata)
-                        ? artifact.metadata
-                        : {}),
-                    error:
-                        error instanceof Error
-                            ? error.message
-                            : "Artifact generation failed",
-                },
+        await updateArtifactRecord(artifactId, {
+            status: "FAILED",
+            metadata: {
+                ...getMetadata(artifact.metadata),
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "Artifact generation failed",
             },
         });
 

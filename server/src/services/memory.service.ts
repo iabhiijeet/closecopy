@@ -27,17 +27,18 @@ export function createMemoryForUser(
 /**
  * Updates the text of an existing memory by id.
  *
- * @param _userId - Reserved for future ownership checks
+ * @param userId - Owner of the memory
  * @param memoryId - Mem0 memory id to update
  * @param input - New memory text
  * @returns Updated Mem0 memory record
  * @throws {ValidationError} When memory is missing or empty
+ * @throws {NotFoundError} When the memory is not owned by the user
  *
  */
 export function updateMemoryForUser(
-    _userId: string,
+    userId: string,
     memoryId: string,
     input: { memory: string },
 ) {
-    return updateUserMemory(memoryId, input);
+    return updateUserMemory(userId, memoryId, input);
 }

@@ -34,11 +34,16 @@ export async function summarizeConversationById(
 
     const messages = await findMessagesByConversationId(conversationId);
 
-    if (messages.length === 0) {
+    if (
+        messages.length === 0 ||
+        messages.length <= conversation.summaryMessageCount
+    ) {
         return conversation;
     }
 
+    // Keep the prompt bounded; the rolling summary carries older context.
     const transcript = messages
+        .slice(-100)
         .map((message) => `${message.role}: ${message.content}`)
         .join("\n\n");
     const previousSummary = conversation.summary?.trim();

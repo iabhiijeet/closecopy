@@ -7,6 +7,7 @@ import {
     importWebsiteSchema,
     importYoutubeSchema,
     listSourcesQuerySchema,
+    reprocessSourcesSchema,
     sourceIdParamSchema,
 } from "../validators/source.validator.js";
 import { workspaceIdParamSchema } from "../validators/workspace.validator.js";
@@ -18,6 +19,7 @@ import {
     importWebsiteSource,
     importYoutubeSource,
     listSourcesForWorkspace,
+    reprocessSourcesForWorkspace,
     uploadPdfSource,
 } from "../services/source.service.js";
 
@@ -86,6 +88,19 @@ function parseBulkDeleteBody(body: unknown) {
     return parsed.data;
 }
 
+function parseReprocessBody(body: unknown) {
+    const parsed = reprocessSourcesSchema.safeParse(body);
+
+    if (!parsed.success) {
+        throw new ValidationError(
+            "Validation failed",
+            getZodFieldErrors(parsed.error),
+        );
+    }
+
+    return parsed.data;
+}
+
 export async function listSources(req: Request, res: Response) {
     const { workspaceId } = parseWorkspaceId(req.params);
     const filters = parseListQuery(req.query);
@@ -137,6 +152,17 @@ export async function bulkDeleteSources(req: Request, res: Response) {
         input.sourceIds,
     );
     res.status(204).send();
+}
+
+export async function reprocessSources(req: Request, res: Response) {
+    const { workspaceId } = parseWorkspaceId(req.params);
+    const input = parseReprocessBody(req.body ?? {});
+    const result = await reprocessSourcesForWorkspace(
+        workspaceId,
+        req.session.user.id,
+        input.sourceIds,
+    );
+    res.json(result);
 }
 
 export async function uploadPdf(req: Request, res: Response) {

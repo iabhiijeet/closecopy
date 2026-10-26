@@ -1,4 +1,3 @@
-import type { Workspace } from "../generated/prisma/browser.js";
 import prisma from "../lib/db.js"
 
 import type { createWorkspaceSchema } from "../validators/workspace.validator.js"
@@ -26,15 +25,15 @@ export type typeWorkspace={
 
 export function findWorkspaceByUser(userId: string){
     return prisma.workspace.findMany({
-        where:{id:userId},
+        where:{userId},
         select:workspaceSelect,
         orderBy:{updatedAt:"desc"}
     })
 }
 
-export function findWorkspaceByIdandUserId(userId:string, workspaceId:string){
+export function findWorkspaceByIdandUserId(workspaceId:string, userId:string){
     return prisma.workspace.findFirst({
-        where:{id:userId,workspaceId},
+        where:{id:workspaceId, userId},
         select:workspaceSelect
     })
 }

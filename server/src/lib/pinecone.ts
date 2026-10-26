@@ -25,6 +25,14 @@ export function getPineconeIndexName(): string {
  * `PIPECONE_API_KEY` is accepted as a legacy alias because older deployments
  * used that misspelling. New deployments should use `PINECONE_API_KEY`.
  */
+/** Returns true when a Pinecone API key is configured. */
+export function isPineconeConfigured(): boolean {
+    return Boolean(
+        process.env.PINECONE_API_KEY?.trim() ||
+            process.env.PIPECONE_API_KEY?.trim(),
+    );
+}
+
 function getPineconeApiKey(): string {
     const apiKey =
         process.env.PINECONE_API_KEY?.trim() ||

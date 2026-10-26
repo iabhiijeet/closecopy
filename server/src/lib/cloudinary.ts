@@ -23,6 +23,15 @@ type CloudinaryUploadResponse = {
     error?: { message: string };
 };
 
+function configureCloudinary() {
+    cloudinary.config({
+        cloud_name: cloudName,
+        api_key: apiKey,
+        api_secret: apiSecret,
+        secure: true,
+    });
+}
+
 export function getSignedCloudinaryDownloadUrl(
     publicId: string,
     resourceType: "raw" | "image" = "raw",
@@ -31,12 +40,7 @@ export function getSignedCloudinaryDownloadUrl(
         return null;
     }
 
-    cloudinary.config({
-        cloud_name: cloudName,
-        api_key: apiKey,
-        api_secret: apiSecret,
-        secure: true,
-    });
+    configureCloudinary();
 
     return cloudinary.url(publicId, {
         resource_type: resourceType,
@@ -55,6 +59,27 @@ export function getSignedCloudinaryDownloadUrl(
  * @throws {ValidationError} When Cloudinary is not configured or upload is rejected
  *
  */
+/**
+ * Deletes an uploaded asset from Cloudinary.
+ *
+ * Returns early when Cloudinary credentials are not configured so local
+ * development can still delete database records.
+ */
+export async function deleteCloudinaryAsset(
+    publicId: string,
+    resourceType: "raw" | "image" = "raw",
+): Promise<void> {
+    if (!cloudName || !apiKey || !apiSecret) {
+        return;
+    }
+
+    configureCloudinary();
+    await cloudinary.uploader.destroy(publicId, {
+        resource_type: resourceType,
+        invalidate: true,
+    });
+}
+
 export async function uploadPdfToCloudinary(
     buffer: Buffer,
     filename: string,

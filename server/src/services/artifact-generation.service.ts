@@ -86,9 +86,16 @@ export async function gatherSourceContext(
         status: "READY",
     });
 
-    const selected = sourceIds?.length
-        ? sources.filter((source) => sourceIds.includes(source.id))
+    const requestedIds = sourceIds ? [...new Set(sourceIds)] : [];
+    const selected = requestedIds.length
+        ? sources.filter((source) => requestedIds.includes(source.id))
         : sources;
+
+    if (requestedIds.length > 0 && selected.length !== requestedIds.length) {
+        throw new ValidationError(
+            "One or more selected sources were not found or are not ready.",
+        );
+    }
 
     if (selected.length === 0) {
         throw new ValidationError(
@@ -98,7 +105,9 @@ export async function gatherSourceContext(
 
     const withContent = selected.flatMap((source) => {
         const content = source.content?.trim();
-        return content ? [{ title: source.title, content }] : [];
+        return content
+            ? [{ id: source.id, title: source.title, content }]
+            : [];
     });
 
     if (withContent.length === 0) {
@@ -114,7 +123,7 @@ export async function gatherSourceContext(
 
     return {
         text,
-        sourceIds: selected.map((source) => source.id),
+        sourceIds: withContent.map((source) => source.id),
     };
 }
 

@@ -20,6 +20,16 @@ export type SourceRecord = Prisma.SourceGetPayload<{
     select: typeof sourceSelect;
 }>;
 
+/** Minimal source fields needed to clean up external assets (Cloudinary, Pinecone). */
+export const sourceAssetSelect = {
+    id: true,
+    metadata: true,
+} as const;
+
+export type SourceAssetRecord = Prisma.SourceGetPayload<{
+    select: typeof sourceAssetSelect;
+}>;
+
 export type CreateSourceData = {
     workspaceId: string;
     type: SourceRecord["type"];
@@ -65,6 +75,13 @@ export function findSourcesByWorkspaceId(workspaceId:string, filters:ListSources
         select:sourceSelect,
         orderBy:{createdAt:"desc"},
     })
+}
+
+export function findSourceAssetsByWorkspaceId(workspaceId: string) {
+    return prisma.source.findMany({
+        where: { workspaceId },
+        select: sourceAssetSelect,
+    });
 }
 
 export function findSourceByIdAndWorkspaceId(sourceId:string, workspaceId:string){

@@ -75,6 +75,6 @@ export async function updateMemory(req: Request, res: Response) {
 
 export async function deleteMemory(req: Request, res: Response) {
     const { memoryId } = parseMemoryId(req.params);
-    await deleteUserMemory(memoryId);
+    await deleteUserMemory(req.session.user.id, memoryId);
     res.status(204).send();
 }

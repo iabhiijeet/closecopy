@@ -52,6 +52,12 @@ The font variables map to Geist Variable, Geist Mono Variable, and Instrument Se
 - `lib/artifact-export.ts`: local Markdown serialization and download.
 - `types/index.ts`: Source, Citation, ArtifactType, Artifact, ChatMessage, QuizQuestion.
 
+## State management
+
+TanStack Query is available throughout the app through `components/landing/Providers.tsx`. `lib/get-query-client.ts` creates a fresh Query Client for each server render and reuses one in the browser, with a 60-second default stale time. Use it for API data and mutations when real endpoints are connected.
+
+Zustand is installed for shared client UI state. `stores/use-workspace-ui-store.ts` provides a typed workspace panel selection as a starting store; import its hook in client components and select only the state or action needed. Keep fetched workspace, source, and artifact data in TanStack Query rather than duplicating it in Zustand. The landing demo still uses its local sample state and makes no API calls.
+
 ## Try the interactions
 
 - Pause or play the hero’s looping three-panel workspace.

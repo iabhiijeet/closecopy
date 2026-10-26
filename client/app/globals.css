@@ -1,8 +1,5 @@
 @import "tailwindcss";
-@import "@fontsource-variable/geist";
-@import "@fontsource-variable/geist-mono";
-@import "@fontsource/instrument-serif/latin-400.css";
-@import "@fontsource/instrument-serif/latin-400-italic.css";
+@import "@fontsource-variable/sora";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "lenis/dist/lenis.css";
@@ -10,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-geist-sans);
+  --font-sans: var(--font-sora);
+  --font-mono: var(--font-sora);
+  --font-heading: var(--font-sora);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -29,8 +26,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-cyan: var(--accent-end);
+  --color-gold: var(--accent-end);
   --color-citation: var(--citation);
+  --color-citation-foreground: var(--citation-foreground);
   --color-success: var(--success);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -51,47 +49,83 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
 }
-:root,
+:root {
+  color-scheme: light;
+  --font-sora: "Sora Variable", "Sora", sans-serif;
+  --background: #faf8f4;
+  --foreground: #1a1f1d;
+  --card: #ffffff;
+  --card-foreground: #1a1f1d;
+  --popover: #ffffff;
+  --popover-foreground: #1a1f1d;
+  --primary: #0f5c4d;
+  --primary-foreground: #ffffff;
+  --accent-end: #c8a15a;
+  --secondary: #f1eee7;
+  --secondary-foreground: #1a1f1d;
+  --muted: #f1eee7;
+  --muted-foreground: #6b7370;
+  --accent: #eee9de;
+  --accent-foreground: #0f5c4d;
+  --citation: #fff1c2;
+  --citation-foreground: #55451f;
+  --success: #0f5c4d;
+  --destructive: #b54040;
+  --border: #e6e1d8;
+  --input: #e6e1d8;
+  --ring: #0f5c4d;
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #1a1f1d;
+  --sidebar-primary: #0f5c4d;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1eee7;
+  --sidebar-accent-foreground: #0f5c4d;
+  --sidebar-border: #e6e1d8;
+  --sidebar-ring: #0f5c4d;
+  --chart-1: #0f5c4d;
+  --chart-2: #c8a15a;
+  --chart-3: #6b7370;
+  --chart-4: #569080;
+  --chart-5: #b99b6d;
+}
 .dark {
   color-scheme: dark;
-  --font-geist-sans: "Geist Variable", sans-serif;
-  --font-geist-mono: "Geist Mono Variable", monospace;
-  --font-instrument-serif: "Instrument Serif", Georgia, serif;
-  --background: #09090b;
-  --foreground: #f4f3fa;
-  --card: #111115;
-  --card-foreground: #f4f3fa;
-  --popover: #18181f;
-  --popover-foreground: #f4f3fa;
-  --primary: #8b5cf6;
-  --primary-foreground: #ffffff;
-  --accent-end: #22d3ee;
-  --secondary: #1d1b29;
-  --secondary-foreground: #e7e1fa;
-  --muted: #1a1a22;
-  --muted-foreground: #9897a7;
-  --accent: #262136;
-  --accent-foreground: #e7dfff;
-  --citation: #c6cf8d;
-  --success: #90c6a1;
+  --background: #0f1412;
+  --foreground: #edeae3;
+  --card: #171e1b;
+  --card-foreground: #edeae3;
+  --popover: #171e1b;
+  --popover-foreground: #edeae3;
+  --primary: #3fb59a;
+  --primary-foreground: #0f1412;
+  --accent-end: #d9b572;
+  --secondary: #202925;
+  --secondary-foreground: #edeae3;
+  --muted: #202925;
+  --muted-foreground: #8e9893;
+  --accent: #26302c;
+  --accent-foreground: #edeae3;
+  --citation: #3a3420;
+  --citation-foreground: #f3dda6;
+  --success: #3fb59a;
   --destructive: #ef8c8c;
-  --border: #ffffff12;
-  --input: #ffffff19;
-  --ring: #a78bfa;
-  --radius: 0.625rem;
-  --sidebar: #111115;
-  --sidebar-foreground: #f4f3fa;
-  --sidebar-primary: #8b5cf6;
-  --sidebar-primary-foreground: #fff;
-  --sidebar-accent: #262136;
-  --sidebar-accent-foreground: #e7dfff;
-  --sidebar-border: #ffffff12;
-  --sidebar-ring: #a78bfa;
-  --chart-1: #8b5cf6;
-  --chart-2: #22d3ee;
-  --chart-3: #c6cf8d;
-  --chart-4: #a78bfa;
-  --chart-5: #9897a7;
+  --border: #26302c;
+  --input: #26302c;
+  --ring: #3fb59a;
+  --sidebar: #171e1b;
+  --sidebar-foreground: #edeae3;
+  --sidebar-primary: #3fb59a;
+  --sidebar-primary-foreground: #0f1412;
+  --sidebar-accent: #26302c;
+  --sidebar-accent-foreground: #edeae3;
+  --sidebar-border: #26302c;
+  --sidebar-ring: #3fb59a;
+  --chart-1: #3fb59a;
+  --chart-2: #d9b572;
+  --chart-3: #8e9893;
+  --chart-4: #75c8b1;
+  --chart-5: #a68c5a;
 }
 @layer base {
   * {
@@ -100,6 +134,7 @@
   html {
     @apply font-sans;
     scroll-padding-top: 100px;
+    font-optical-sizing: auto;
   }
   body {
     @apply bg-background text-foreground;
@@ -121,55 +156,37 @@
 }
 @layer components {
   .container-page {
-    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8 lg:px-10;
   }
   .section-space {
-    @apply py-20 sm:py-28;
+    @apply py-20 sm:py-26;
   }
   .section-title {
-    @apply text-3xl sm:text-[44px] font-medium tracking-[-0.045em] leading-[1.15];
+    @apply text-[30px] sm:text-[42px] font-semibold tracking-[-0.055em] leading-[1.18];
   }
   .eyebrow {
-    @apply text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-mono text-primary;
+    @apply text-[10px] sm:text-[11px] uppercase tracking-[0.18em] font-semibold text-primary;
   }
   .serif {
-    font-family: var(--font-instrument-serif), Georgia, serif;
-    font-weight: 400;
-    font-style: italic;
+    font-family: var(--font-sora);
+    font-weight: 650;
+    font-style: normal;
   }
   .accent-gradient {
-    background: linear-gradient(115deg, var(--primary), var(--accent-end));
+    background: var(--primary);
   }
   .gradient-text {
-    background: linear-gradient(
-      105deg,
-      var(--primary) 8%,
-      color-mix(in srgb, var(--primary) 45%, var(--foreground)) 40%,
-      var(--accent-end)
-    );
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
+    color: var(--primary);
   }
   .gradient-button {
-    background: linear-gradient(
-      105deg,
-      var(--primary),
-      color-mix(in srgb, var(--primary) 78%, var(--accent-end))
-    );
-    box-shadow:
-      0 0 24px color-mix(in srgb, var(--primary) 16%, transparent),
-      inset 0 1px 0 color-mix(in srgb, var(--foreground) 20%, transparent);
+    background: var(--primary);
+    color: var(--primary-foreground);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 12%, transparent);
   }
   .glass {
-    background: linear-gradient(
-      140deg,
-      color-mix(in srgb, var(--card) 96%, var(--primary)),
-      var(--card)
-    );
+    background: var(--card);
     border: 1px solid var(--border);
-    box-shadow: none;
-    backdrop-filter: blur(16px);
+    box-shadow: 0 16px 45px color-mix(in srgb, var(--foreground) 4%, transparent);
   }
   .spotlight {
     background: radial-gradient(
@@ -186,9 +203,9 @@
     );
   }
   .citation-chip {
-    color: var(--citation);
-    border-color: color-mix(in srgb, var(--citation) 20%, transparent);
-    background: color-mix(in srgb, var(--citation) 6%, transparent);
+    color: var(--citation-foreground);
+    border-color: color-mix(in srgb, var(--accent-end) 32%, var(--border));
+    background: var(--citation);
   }
   .marquee-mask {
     mask-image: linear-gradient(
@@ -208,7 +225,7 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: 0.025;
+    opacity: 0.012;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23ffffff' filter='url(%23n)' opacity='.7' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
   }
   .logo-mark {
@@ -232,14 +249,14 @@
   .aurora-orb {
     background: radial-gradient(
       ellipse,
-      color-mix(in srgb, var(--primary) 25%, transparent),
+      color-mix(in srgb, var(--primary) 9%, transparent),
       transparent 68%
     );
   }
   .aurora-cyan {
     background: radial-gradient(
       ellipse,
-      color-mix(in srgb, var(--accent-end) 10%, transparent),
+      color-mix(in srgb, var(--accent-end) 8%, transparent),
       transparent 68%
     );
   }

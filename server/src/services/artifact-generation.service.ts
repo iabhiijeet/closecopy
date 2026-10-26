@@ -134,9 +134,9 @@ export async function generateArtifactContent(
     sourceText: string,
 ) {
     const system = [
-        `You are Chaibook, an expert learning assistant generating a ${type.toLowerCase()} from workspace source materials.`,
+        `You are Closecopy, an expert learning assistant generating a ${type.toLowerCase()} from workspace source materials.`,
         "Use ONLY the provided source content. Do not invent facts not supported by the sources.",
-        "Be clear, educational, and well-structured.",
+        "Be clear, educational, and well-structured and keep things sorted and organized.",
     ].join("\n");
 
     switch (type) {
@@ -144,7 +144,7 @@ export async function generateArtifactContent(
             const result = await generateText({
                 model: openai(CHAT_MODEL),
                 system,
-                prompt: `Write a comprehensive markdown summary of the following sources:\n\n${sourceText}`,
+                prompt: `Write a comprehensive markdown summary of the following sources and you don't need to include a big text, keep things as much compact as possible:\n\n${sourceText}`,
             });
             return { markdown: result.text };
         }

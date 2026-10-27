@@ -42,6 +42,7 @@ export function createWorkspace(userId:string, data:createWorkspaceSchema){
     return prisma.workspace.create({
         data: {
             ...data,
+            defaultModel: data.defaultModel ?? "gpt-4o-mini",
             userId,
         },
         select: workspaceSelect,

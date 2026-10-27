@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "test:smoke": "node scripts/smoke-test.mjs",
+    "test:auth-workspace": "node scripts/auth-workspace-smoke.mjs",
+    "test:e2e": "node scripts/e2e-workspace.mjs",
+    "test:frontend": "node scripts/frontend-workspace.mjs",
     "format:check": "prettier --check app components/landing components/sections components/artifacts lib/mock-data.ts lib/artifact-export.ts types/index.ts scripts/smoke-test.mjs README.md",
     "lint:landing": "eslint app components/landing components/sections components/artifacts lib/mock-data.ts lib/artifact-export.ts types/index.ts scripts/smoke-test.mjs"
   },

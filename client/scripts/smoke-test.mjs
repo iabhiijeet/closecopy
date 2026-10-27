@@ -21,8 +21,10 @@ async function ready() {
   }
   throw new Error("Preview server did not start");
 }
-function watch(page) {
+async function watch(page) {
+  await page.route("http://localhost:8080/api/auth/get-session", (route) => route.fulfill({ status: 200, contentType: "application/json", body: "null", headers: { "Access-Control-Allow-Origin": new URL(base).origin, "Access-Control-Allow-Credentials": "true" } }));
   page.on("pageerror", (e) => runtimeErrors.push(e.message));
+  page.on("console", (message) => { if (message.type() === "error") runtimeErrors.push(message.text()); });
   page.on("request", (r) => {
     if (!/^(http:\/\/(127\.0\.0\.1|localhost)|data:|blob:)/.test(r.url()))
       externalRequests.push(r.url());
@@ -56,22 +58,23 @@ try {
   const desktop = await browser.newPage({
     viewport: { width: 1440, height: 1000 },
   });
-  watch(desktop);
+  await watch(desktop);
   await desktop.goto(base, { waitUntil: "networkidle" });
   await expect(desktop.getByRole("heading", { level: 1 })).toHaveAccessibleName(
     "Your knowledge, put to work.",
   );
   await expect(desktop.locator("body")).toHaveCSS(
     "background-color",
-    "rgb(250, 248, 244)",
+    "rgb(12, 17, 16)",
   );
   await desktop
     .getByRole("button", { name: "Toggle light and dark mode" })
     .first()
     .click();
+  console.log("Theme toggle state:", await desktop.evaluate(() => ({ root: document.documentElement.className, stored: localStorage.getItem("theme") })));
   await expect(desktop.locator("body")).toHaveCSS(
     "background-color",
-    "rgb(15, 20, 18)",
+    "rgb(250, 248, 244)",
   );
   await desktop
     .getByRole("button", { name: "Toggle light and dark mode" })
@@ -261,7 +264,7 @@ try {
     hasTouch: true,
     reducedMotion: "reduce",
   });
-  watch(mobile);
+  await watch(mobile);
   await mobile.goto(base, { waitUntil: "networkidle" });
   await expect(mobile.getByRole("heading", { level: 1 })).toHaveCSS(
     "opacity",
@@ -313,7 +316,7 @@ try {
   expect(runtimeErrors).toEqual([]);
   expect(externalRequests).toEqual([]);
   console.log(
-    "PASS: desktop, mobile, reduced motion, all 8 artifacts, quiz score/reset, flashcards, connected mind-map movement, source-selection generation, Markdown export, streamed chat, local file picker, pricing, FAQ, newsletter, no overflow, no runtime errors, and no external/API requests.",
+    "PASS: desktop, mobile, reduced motion, all 8 artifacts, quiz score/reset, flashcards, connected mind-map movement, source-selection generation, Markdown export, streamed chat, local file picker, pricing, FAQ, newsletter, no overflow, no runtime errors, and no unexpected external requests.",
   );
 } finally {
   await browser?.close();

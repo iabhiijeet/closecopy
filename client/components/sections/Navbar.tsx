@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { Menu, ArrowUpRight, SunMoon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
@@ -17,9 +18,9 @@ import {
   SheetDescription,
   SheetClose,
 } from "@/components/ui/sheet";
-import { toast } from "sonner";
 import Logo from "@/components/landing/Logo";
 import MagneticButton from "@/components/landing/MagneticButton";
+import { useSession } from "@/lib/auth";
 const links = [
   ["Features", "features"],
   ["Artifacts", "artifacts"],
@@ -44,12 +45,18 @@ function ThemeToggle() {
 }
 
 export default function Navbar() {
+  const { data: session } = useSession();
+  const signedIn = Boolean(session?.user);
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-[12px]">
       <div className="container-page flex h-19 items-center justify-between gap-5">
-        <a href="#home" aria-label="closecopy home" className="text-[25px]">
+        <Link
+          href="/workspaces"
+          aria-label={signedIn ? "Go to dashboard" : "closecopy home"}
+          className="text-[25px]"
+        >
           <Logo />
-        </a>
+        </Link>
         <NavigationMenu className="hidden md:flex" aria-label="Main navigation">
           <NavigationMenuList className="gap-2 lg:gap-4">
             {links.map(([label, id]) => (
@@ -66,23 +73,31 @@ export default function Navbar() {
         </NavigationMenu>
         <div className="hidden md:flex items-center gap-3">
           <ThemeToggle />
-          <Button
-            variant="ghost"
-            className="text-xs"
-            onClick={() =>
-              toast.info(
-                "You’re exploring the frontend demo. Try the workspace below — no sign-in needed.",
-              )
-            }
-          >
-            Sign in
-          </Button>
-          <MagneticButton
-            render={<a href="#playground" />}
-            className="h-9 px-4 text-[11px]"
-          >
-            Get started <ArrowUpRight className="size-3.5" />
-          </MagneticButton>
+          {signedIn ? (
+            <MagneticButton
+              render={<Link href="/workspaces" />}
+              className="h-9 px-4 text-[11px]"
+            >
+              Dashboard <ArrowUpRight className="size-3.5" />
+            </MagneticButton>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                className="text-xs"
+                render={<Link href="/login" />}
+                nativeButton={false}
+              >
+                Sign in
+              </Button>
+              <MagneticButton
+                render={<Link href="/register" />}
+                className="h-9 px-4 text-[11px]"
+              >
+                Get started <ArrowUpRight className="size-3.5" />
+              </MagneticButton>
+            </>
+          )}
         </div>
         <div className="ml-auto md:hidden">
           <ThemeToggle />
@@ -126,19 +141,50 @@ export default function Navbar() {
                   {label}
                 </SheetClose>
               ))}
-              <SheetClose
-                role="link"
-                render={
-                  <Button
-                    nativeButton={false}
+              {signedIn ? (
+                <SheetClose
+                  nativeButton={false}
+                  render={
+                    <Button
+                      nativeButton={false}
+                      role="link"
+                      render={<Link href="/workspaces" />}
+                      className="gradient-button mt-4 h-11"
+                    />
+                  }
+                >
+                  Dashboard <ArrowUpRight />
+                </SheetClose>
+              ) : (
+                <>
+                  <SheetClose
                     role="link"
-                    render={<a href="#playground" />}
-                    className="gradient-button mt-4 h-11"
-                  />
-                }
-              >
-                Get started <ArrowUpRight />
-              </SheetClose>
+                    nativeButton={false}
+                    render={
+                      <a
+                        href="/login"
+                        className="rounded-lg p-3 text-sm hover:bg-muted"
+                      />
+                    }
+                  >
+                    Sign in
+                  </SheetClose>
+                  <SheetClose
+                    role="link"
+                    nativeButton={false}
+                    render={
+                      <Button
+                        nativeButton={false}
+                        role="link"
+                        render={<a href="/register" />}
+                        className="gradient-button mt-4 h-11"
+                      />
+                    }
+                  >
+                    Get started <ArrowUpRight />
+                  </SheetClose>
+                </>
+              )}
             </nav>
           </SheetContent>
         </Sheet>

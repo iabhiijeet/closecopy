@@ -1,5 +1,6 @@
 import {
     Pinecone,
+    Errors,
     type Index,
     type PineconeRecord,
 } from "@pinecone-database/pinecone";
@@ -169,9 +170,12 @@ export async function deleteSourceVectors(
     sourceId: string,
 ): Promise<void> {
     const index = await getPineconeIndex();
-    await index.namespace(workspaceId).deleteMany({
-        filter: { sourceId: { $eq: sourceId } },
-    });
+    try {
+        await index.namespace(workspaceId).deleteMany({ filter: { sourceId: { $eq: sourceId } } });
+    } catch (error) {
+        // A new workspace has no namespace until its first successful upsert.
+        if (!(error instanceof Errors.PineconeNotFoundError)) throw error;
+    }
 }
 
 /**
@@ -186,7 +190,8 @@ export async function deleteWorkspaceVectors(
     workspaceId: string,
 ): Promise<void> {
     const index = await getPineconeIndex();
-    await index.namespace(workspaceId).deleteAll();
+    try { await index.namespace(workspaceId).deleteAll(); }
+    catch (error) { if (!(error instanceof Errors.PineconeNotFoundError)) throw error; }
 }
 
 /**
@@ -209,13 +214,13 @@ export async function queryWorkspaceVectors(
     }
 
     const index = await getPineconeIndex();
-    const result = await index.namespace(workspaceId).query({
-        vector,
-        topK,
-        includeMetadata: true,
-    });
-
-    return result.matches ?? [];
+    try {
+        const result = await index.namespace(workspaceId).query({ vector, topK, includeMetadata: true });
+        return result.matches ?? [];
+    } catch (error) {
+        if (error instanceof Errors.PineconeNotFoundError) return [];
+        throw error;
+    }
 }
 
 export { getPineconeIndexName as PINECONE_INDEX_NAME };

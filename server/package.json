@@ -5,9 +5,11 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:jobs": "npx --yes --ignore-scripts=false inngest-cli@latest dev --no-discovery -u http://localhost:8080/api/inngest",
     "prisma:generate": "prisma generate",
     "build": "prisma generate && tsc",
     "typecheck": "tsc --noEmit",
+    "test:processors": "tsx scripts/test-workspace-processors.ts",
     "start": "node dist/index.js"
   },
   "keywords": [],

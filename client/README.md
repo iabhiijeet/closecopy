@@ -1,6 +1,6 @@
 # closecopy
 
-A light and dark landing page for an AI source workspace. Built with Next.js 16, TypeScript, Tailwind CSS 4, Base UI-based shadcn components, Sora, Framer Motion, Lucide, and Sonner.
+A source-grounded research workspace with login, registration, source imports, cited chat and learning artifacts. Built with Next.js 16, TypeScript, Tailwind CSS 4, Base UI-based shadcn components, TanStack Query, Zustand, Lucide and Sonner.
 
 ## Install and run
 
@@ -10,19 +10,27 @@ npm install
 npm run dev
 ```
 
-Visit http://localhost:3000. Sora is self-hosted through `@fontsource-variable/sora`; rendering requires no Google Fonts connection. Node 20.9+ is required by the existing Next.js version.
+Visit http://localhost:3000. Geist and Newsreader are loaded through `next/font`. Node 20.9+ is required by the existing Next.js version.
+
+For account and workspace pages, start the backend on `http://localhost:8080` and set `NEXT_PUBLIC_API_URL` in `client/.env.local` if it runs elsewhere. `client/.env.example` shows the default. The backend must allow the frontend origin through `CLIENT_URL`. Email/password and Google sign-in use the backend's Better Auth cookie session. Google sign-in also needs the Google credentials configured in `server/.env`.
+
+`/login` and `/register` provide account access. `/workspaces` is a searchable library with a creation dialog. `/workspaces/[workspaceId]` has Sources, Chat, and Studio panels: users can add text, website, YouTube and PDF sources, switch conversations, ask cited questions, generate artifacts, and open them in readable views. Server data is cached in TanStack Query; the active mobile workspace panel uses Zustand. The homepage playground remains a separate visual demo.
+
+Start the backend with `npm run dev` in `server`. In a separate terminal, run `npm run dev:jobs` in `server` for source processing and artifact generation, with `INNGEST_DEV=1` in `server/.env`. This uses the [official Inngest development server](https://www.inngest.com/docs/local-development). If the local worker is unavailable, the API returns a prompt processing error and the frontend offers retry controls.
+
+Workspaces support editing and deletion. Sources can be previewed, removed, retried and selected for Studio generation. Chat supports saved conversations, stopping a response, Markdown formatting, copying replies and opening citation passages. Artifacts include interactive quizzes, flashcards, connected mind maps and Markdown downloads.
 
 ## Theme variables
 
-Theme variables live in `app/globals.css`. Light mode is the default; the navigation toggle switches to dark mode and remembers the choice. Components use semantic color tokens and Sora throughout.
+Theme variables live in `app/globals.css`. Dark mode is the default; the navigation toggle switches themes and remembers the choice. Components use semantic color tokens.
 
 | Role               | Light     | Dark      |
 | ------------------ | --------- | --------- |
-| Background         | `#FAF8F4` | `#0F1412` |
-| Cards              | `#FFFFFF` | `#171E1B` |
-| Border             | `#E6E1D8` | `#26302C` |
+| Background         | `#FAF8F4` | `#0C1110` |
+| Cards              | `#FFFFFF` | `#131A18` |
+| Border             | `#E6E1D8` | `#24302D` |
 | Text               | `#1A1F1D` | `#EDEAE3` |
-| Muted text         | `#6B7370` | `#8E9893` |
+| Muted text         | `#6B7370` | `#9AA5A0` |
 | Emerald            | `#0F5C4D` | `#3FB59A` |
 | Gold               | `#C8A15A` | `#D9B572` |
 | Citation highlight | `#FFF1C2` | `#3A3420` |
@@ -43,7 +51,7 @@ The homepage uses still section layouts and subtle interaction motion. The hero 
 
 ## State management
 
-TanStack Query is available throughout the app through `components/landing/Providers.tsx`. `lib/get-query-client.ts` creates a fresh Query Client for each server render and reuses one in the browser, with a 60-second default stale time. Use it for API data and mutations when real endpoints are connected.
+TanStack Query is available throughout the app through `components/landing/Providers.tsx`. `lib/get-query-client.ts` creates a fresh Query Client for each server render and reuses one in the browser, with a 60-second default stale time. Workspace API data and mutations use this cache; session expiry redirects to sign-in and authentication clears account-specific cached data.
 
 Zustand is installed for shared client UI state. `stores/use-workspace-ui-store.ts` provides a typed workspace panel selection as a starting store; import its hook in client components and select only the state or action needed. Keep fetched workspace, source, and artifact data in TanStack Query rather than duplicating it in Zustand. The landing demo still uses its local sample state and makes no API calls.
 
@@ -62,20 +70,23 @@ Zustand is installed for shared client UI state. `stores/use-workspace-ui-store.
 - Resize playground panels on desktop; use Sources / Chat / Artifacts tabs on mobile.
 - Change billing frequency, open FAQ answers, or submit a mock newsletter address.
 
-Pricing, usage counters, testimonials, authentication, social links, PDF/DOCX export, semantic retrieval, and privacy controls are product illustrations. Demo notices keep that distinction visible. Newsletter submissions and selected files are held only in browser memory. No application API calls are made.
+Pricing, usage counters, testimonials, social links, PDF/DOCX export, and homepage privacy controls are product illustrations. Demo notices keep that distinction visible. Newsletter submissions and files selected in the homepage playground are held only in browser memory. The account and workspace routes use the application API.
 
 ## Checks
 
 ```powershell
 npx tsc --noEmit
-npm run lint:landing
+npm run lint
 npm run build
+npm run test:auth-workspace # requires frontend and backend servers on their default ports
+npm run test:frontend # comprehensive UI checks with synthetic API fixtures
+npm run test:e2e # live frontend/backend flow; creates and removes temporary test accounts
 # Optional isolated browser smoke check:
 npx playwright install chromium
 npm run test:smoke
 ```
 
-Full-repo `npm run lint` also checks the untouched generated code. It currently reports pre-existing `react-hooks/set-state-in-effect` errors in `components/ui/carousel.tsx:98` and `hooks/use-mobile.ts:14`. The landing-page check keeps these separate while respecting the instruction to preserve existing primitives.
+The live E2E test uses synthetic data and requires the backend database and processing services. It reports blocked processing separately from application failures. For direct backend processor tests, run `npm run test:processors` in `server`; use `npm run test:processors -- --vectors-only` to check extraction, embedding and retrieval without repeating artifact generation. Reports and screenshots are saved in the ignored `client/preview` directory.
 
 ## Connecting a real API later
 

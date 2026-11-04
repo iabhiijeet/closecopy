@@ -1,5 +1,5 @@
 import { inngest } from "../inngest/client.js";
-import { requireLocalJobService } from "./job-service.js";
+import { requireJobService } from "./job-service.js";
 
 /**
  * Enqueues asynchronous learning-artifact generation via Inngest.
@@ -10,7 +10,7 @@ import { requireLocalJobService } from "./job-service.js";
 export async function enqueueArtifactGeneration(input: {
     artifactId: string;
 }) {
-    await requireLocalJobService();
+    await requireJobService();
     await inngest.send({
         name: "artifact/generate",
         data: input,

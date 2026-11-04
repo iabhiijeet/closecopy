@@ -1,6 +1,6 @@
 
 import { inngest } from "../inngest/client.js";
-import { requireLocalJobService } from "./job-service.js";
+import { requireJobService } from "./job-service.js";
 
 /**
  * Enqueues a source processing job to run asynchronously via Inngest.
@@ -15,7 +15,7 @@ export async function enqueueSourceProcessing(input: {
     sourceId: string;
     workspaceId: string;
 }) {
-    await requireLocalJobService();
+    await requireJobService();
     await  inngest.send({
         name: "source/created",
         data: input,

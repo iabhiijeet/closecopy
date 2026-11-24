@@ -12,6 +12,9 @@ const newsreader = Newsreader({
   style: ["normal", "italic"],
 });
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  ),
   title: "closecopy — From sources to something remarkable",
   description:
     "Your sources. Your artifacts. One workspace. Explore cited answers and turn what you read into summaries, quizzes, mind maps, and more.",

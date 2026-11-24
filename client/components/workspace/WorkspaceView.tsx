@@ -193,8 +193,10 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
       setShowSourceForm(false);
       queryClient.invalidateQueries({ queryKey: ["sources", workspaceId] });
     },
-    onError: () =>
-      queryClient.invalidateQueries({ queryKey: ["sources", workspaceId] }),
+    onError: (error) => {
+      toast.error(error.message);
+      queryClient.invalidateQueries({ queryKey: ["sources", workspaceId] });
+    },
   });
   const upload = useMutation({
     mutationFn: (file: File) => {

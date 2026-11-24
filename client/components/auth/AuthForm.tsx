@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,6 +21,8 @@ import {
   useSession,
 } from "@/lib/auth";
 
+const noopSubscribe = () => () => {};
+
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -25,6 +32,13 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  // Read the redirect target without an effect so the link is correct after
+  // hydration while server rendering stays stable.
+  const next = useSyncExternalStore(
+    noopSubscribe,
+    () => new URLSearchParams(window.location.search).get("next") ?? "",
+    () => "",
+  );
   useEffect(() => {
     if (session.data?.user) router.replace(authDestination());
   }, [router, session.data?.user]);
@@ -161,6 +175,13 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
               <Button
                 type="submit"
                 disabled={pending}
+                aria-label={
+                  pending
+                    ? mode === "login"
+                      ? "Signing in"
+                      : "Creating account"
+                    : undefined
+                }
                 className="h-11 w-full bg-[var(--primary-fill)] text-[var(--primary-fill-foreground)] hover:opacity-90"
               >
                 {pending ? (
@@ -192,7 +213,10 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
                 ? "New to closecopy?"
                 : "Already have an account?"}{" "}
               <Link
-                href={mode === "login" ? "/register" : "/login"}
+                href={
+                  (mode === "login" ? "/register" : "/login") +
+                  (next ? `?next=${encodeURIComponent(next)}` : "")
+                }
                 className="font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
               >
                 {mode === "login" ? "Create an account" : "Sign in"}

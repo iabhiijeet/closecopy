@@ -18,8 +18,10 @@ export function RequireSession({ children }: { children: ReactNode }) {
   }, [queryClient]);
 
   useEffect(() => {
-    if (!isPending && !data?.user && !isError)
-      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    if (!isPending && !data?.user && !isError) {
+      const destination = `${pathname}${window.location.search}${window.location.hash}`;
+      router.replace(`/login?next=${encodeURIComponent(destination)}`);
+    }
   }, [data, isError, isPending, pathname, router]);
 
   if (isPending)

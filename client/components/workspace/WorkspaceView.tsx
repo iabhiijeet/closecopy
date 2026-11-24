@@ -351,10 +351,11 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
       setDraftMessages([]);
     } catch (cause) {
       const stopped =
-        cause instanceof DOMException && cause.name === "AbortError";
+        controller.signal.aborted ||
+        (cause instanceof DOMException && cause.name === "AbortError");
       setChatError(
         stopped
-          ? "Response stopped. You can send the question again."
+          ? ""
           : cause instanceof Error
             ? cause.message
             : "Could not send your message.",

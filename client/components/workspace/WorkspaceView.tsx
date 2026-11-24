@@ -211,6 +211,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
       queryClient.invalidateQueries({ queryKey: ["sources", workspaceId] });
       toast.success("PDF added. Processing has started.");
     },
+    onError: (error) => toast.error(error.message),
   });
   const generate = useMutation({
     mutationFn: (type: string) =>
@@ -229,8 +230,10 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
       setActivePanel("artifacts");
       toast.success("Artifact queued. It will appear in Studio when ready.");
     },
-    onError: () =>
-      queryClient.invalidateQueries({ queryKey: ["artifacts", workspaceId] }),
+    onError: (error) => {
+      toast.error(error.message);
+      queryClient.invalidateQueries({ queryKey: ["artifacts", workspaceId] });
+    },
   });
   const retrySource = useMutation({
     mutationFn: (sourceId: string) =>
@@ -347,15 +350,20 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
       ]);
       setDraftMessages([]);
     } catch (cause) {
-      if (!(cause instanceof DOMException && cause.name === "AbortError")) {
-        setChatError(
-          cause instanceof Error
+      const stopped =
+        cause instanceof DOMException && cause.name === "AbortError";
+      setChatError(
+        stopped
+          ? "Response stopped. You can send the question again."
+          : cause instanceof Error
             ? cause.message
             : "Could not send your message.",
-        );
-        setQuestion(text);
-      }
-      setDraftMessages([]);
+      );
+      setQuestion(text);
+      // Keep the streamed tokens visible after a stop so the user can see
+      // what was generated before canceling. Switching conversations clears
+      // these drafts.
+      if (!stopped) setDraftMessages([]);
     } finally {
       setSending(false);
       streamController.current = null;
@@ -795,7 +803,7 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
               </p>
             )}
             <div
-              aria-live="polite"
+              aria-live={sending ? "off" : "polite"}
               className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-5"
             >
               {messages.isPending && conversationId && !sending && (
@@ -931,7 +939,8 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
                       !event.nativeEvent.isComposing
                     ) {
                       event.preventDefault();
-                      if (!sending) event.currentTarget.form?.requestSubmit();
+                      if (!sending && !(conversationId && messages.isPending))
+                        event.currentTarget.form?.requestSubmit();
                     }
                   }}
                   aria-label="Ask a question"

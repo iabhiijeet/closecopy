@@ -350,21 +350,15 @@ export function WorkspaceView({ workspaceId }: { workspaceId: string }) {
       ]);
       setDraftMessages([]);
     } catch (cause) {
-      const stopped =
-        controller.signal.aborted ||
-        (cause instanceof DOMException && cause.name === "AbortError");
-      setChatError(
-        stopped
-          ? ""
-          : cause instanceof Error
+      if (!(cause instanceof DOMException && cause.name === "AbortError")) {
+        setChatError(
+          cause instanceof Error
             ? cause.message
             : "Could not send your message.",
-      );
-      setQuestion(text);
-      // Keep the streamed tokens visible after a stop so the user can see
-      // what was generated before canceling. Switching conversations clears
-      // these drafts.
-      if (!stopped) setDraftMessages([]);
+        );
+        setQuestion(text);
+      }
+      setDraftMessages([]);
     } finally {
       setSending(false);
       streamController.current = null;

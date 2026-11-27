@@ -1,5 +1,7 @@
 # closecopy
 
+![Next.js](https://img.shields.io/badge/Next.js-16-blue) ![React](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-blue) ![Tailwind](https://img.shields.io/badge/Tailwind-4-blue) ![Express](https://img.shields.io/badge/Express-5-blue) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-blue) ![Prisma](https://img.shields.io/badge/Prisma-7-blue)
+
 A source-grounded research and study workspace. Add your own material, ask questions and get answers grounded in it with inline citations, then turn those sources into learning artifacts.
 
 The app has a marketing homepage with an interactive demo (`/`) and the real authenticated application (`/login`, `/register`, `/workspaces`).
